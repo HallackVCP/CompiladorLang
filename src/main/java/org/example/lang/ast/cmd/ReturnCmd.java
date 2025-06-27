@@ -1,0 +1,16 @@
+package org.example.lang.ast.cmd;
+
+import org.example.lang.ast.Visitor;
+import org.example.lang.ast.exp.Exp;
+
+/**
+ * Representa o comando 'return', que define os valores de retorno de uma função.
+ * É seguido por uma lista de expressões separadas por vírgula.
+ * (Esta implementação foi simplificada para um único valor de retorno para corresponder ao parser do exemplo.)
+ */
+public record ReturnCmd(Exp exp) implements Cmd {
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+        return visitor.visit(this);
+    }
+}
