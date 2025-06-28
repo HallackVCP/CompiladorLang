@@ -1,35 +1,51 @@
 package org.example.lang.interpreter;
 
-import org.example.interpreter.value.*;
+import org.example.lang.ast.type.ArrayTypeNode;
+import org.example.lang.ast.type.BaseTypeNode;
+import org.example.lang.interpreter.value.*;
 import org.example.lang.ast.*;
 import org.example.lang.ast.cmd.*;
 import org.example.lang.ast.decl.*;
 import org.example.lang.ast.exp.*;
-import org.example.lang.interpreter.value.*;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Visitor<Value> {
     private final Environment environment = new Environment();
+    private final Scanner inputScanner = new Scanner(System.in);
+    private final Map<String, DataDecl> dataDeclarations = new HashMap<>();
 
     public void interpret(Program program) {
         program.accept(this);
     }
 
     @Override
+    public Value visit(BaseTypeNode n) {
+        return null;
+    }
+
+    @Override
+    public Value visit(ArrayTypeNode n) {
+        return null;
+    }
+
+    @Override
     public Value visit(Program p) {
-        // Primeiro, declarar todas as funções no ambiente
+        // Primeira passagem: registrar todas as declarações de tipo e função
         for (Decl decl : p.decls()) {
             decl.accept(this);
         }
 
-        // Em seguida, encontrar e executar a função 'main'
         Value mainFunc = environment.get("main");
-        if (mainFunc instanceof FunctionValue) {
-            // A execução de um programa se dá pela avaliação da função main
-            if (((FunctionValue) mainFunc).decl().params().isEmpty()) { // main não tem argumentos
-                executeFunction((FunctionValue) mainFunc, new ArrayList<>());
+        if (mainFunc instanceof FunctionValue fv) {
+            if (fv.decl().params().isEmpty()) {
+                executeFunction(fv, new ArrayList<>());
             } else {
                 throw new RuntimeException("Erro: A função 'main' não deve ter parâmetros.");
             }
@@ -39,37 +55,50 @@ public class Interpreter implements Visitor<Value> {
         return new VoidValue();
     }
 
+    private Value executeFunction(FunctionValue func, List<Value> argValues) {
+        if (func.decl().params().size() != argValues.size()) {
+            throw new RuntimeException("Erro: número incorreto de argumentos para a função " + func.decl().name());
+        }
+        environment.pushScope();
+        for (int i = 0; i < func.decl().params().size(); i++) {
+            environment.define(func.decl().params().get(i).name(), argValues.get(i));
+        }
+
+        Value result = func.decl().body().accept(this);
+        environment.popScope();
+
+        if (result instanceof ReturnValue rv) {
+            // Retorna a lista de valores, que será tratada pelo chamador
+            return new ListValue(rv.values());
+        }
+        // Funções sem 'return' explícito retornam uma lista vazia.
+        return new ListValue(Collections.emptyList());
+    }
+
+    // --- Visitantes de Declaração ---
+    @Override
+    public Value visit(DataDecl d) {
+        dataDeclarations.put(d.name(), d);
+        for(FunDecl fun : d.functions()){
+            fun.accept(this); // Registrar funções internas
+        }
+        return new VoidValue();
+    }
+
     @Override
     public Value visit(FunDecl d) {
-        // Armazena a declaração da função no ambiente para chamadas futuras
         environment.define(d.name(), new FunctionValue(d));
         return new VoidValue();
     }
 
-    private Value executeFunction(FunctionValue func, List<Value> argValues) {
-        environment.pushScope();
-        List<FunDecl.Param> params = func.decl().params();
-        for (int i = 0; i < params.size(); i++) {
-            environment.define(params.get(i).name(), argValues.get(i));
-        }
 
-        Value result = func.decl().body().accept(this);
 
-        environment.popScope();
-
-        // Tratar o 'return' que interrompe o fluxo
-        if (result instanceof ReturnValue) {
-            return ((ReturnValue) result).value();
-        }
-        return new VoidValue();
-    }
-
+    // --- Visitantes de Comando ---
     @Override
     public Value visit(BlockCmd c) {
         environment.pushScope();
         for (Cmd cmd : c.cmds()) {
             Value result = cmd.accept(this);
-            // Se um comando de retorno for encontrado, interrompa a execução do bloco
             if (result instanceof ReturnValue) {
                 environment.popScope();
                 return result;
@@ -94,19 +123,93 @@ public class Interpreter implements Visitor<Value> {
         return new VoidValue();
     }
 
+
+    @Override
+    public Value visit(ReadCmd c) {
+        System.out.print("Entrada para " + ((VarAccessExp)c.lvalue()).name() + ": ");
+        int val = inputScanner.nextInt();
+        environment.assign(((VarAccessExp)c.lvalue()).name(), new IntValue(val));
+        return new VoidValue();
+    }
+
+    @Override
+    public Value visit(IterateCmd c) {
+        Value collection = c.collection().accept(this);
+
+        if (c.var().isPresent()) { // Forma: iterate(id: collection)
+            String varName = c.var().get();
+            List<Value> items = new ArrayList<>();
+            if (collection instanceof ArrayValue av) {
+                items.addAll(av.elements());
+            } else if (collection instanceof IntValue iv) { // `iterate(i: 5)` itera de 0 a 4
+                for (int i = 0; i < iv.value(); i++) { items.add(new IntValue(i)); }
+            } else { throw new RuntimeException("Iteração com variável só suporta arrays ou inteiros."); }
+
+            for (Value item : items) {
+                environment.pushScope();
+                environment.define(varName, item);
+                Value result = c.body().accept(this);
+                environment.popScope();
+                if (result instanceof ReturnValue) return result;
+            }
+        } else { // Forma: iterate(exp)
+            if (collection instanceof IntValue iv) {
+                for (int i = 0; i < iv.value(); i++) {
+                    Value result = c.body().accept(this);
+                    if (result instanceof ReturnValue) return result;
+                }
+            } else { throw new RuntimeException("Iteração sem variável requer um valor inteiro."); }
+        }
+        return new VoidValue();
+    }
+
+    @Override
+    public Value visit(ProcCallCmd c) {
+        Value func = environment.get(c.name());
+        if (!(func instanceof FunctionValue)) {
+            throw new RuntimeException("Erro: '" + c.name() + "' não é uma função.");
+        }
+        List<Value> argValues = new ArrayList<>();
+        c.args().forEach(arg -> argValues.add(arg.accept(this)));
+
+        executeFunction((FunctionValue)func, argValues); // O valor de retorno é descartado
+        return new VoidValue();
+    }
+
+    @Override
+    public Value visit(FuncCallAssignCmd c) {
+        Value result = c.call().accept(this);
+        if (!(result instanceof ListValue)) {
+            throw new RuntimeException("O retorno da função não foi uma lista de valores.");
+        }
+        List<Value> returnedValues = ((ListValue)result).values();
+        List<LValue> lvalues = c.lvalues();
+
+        if (returnedValues.size() != lvalues.size()) {
+            throw new RuntimeException("Número de valores de retorno (" + returnedValues.size() + ") é diferente do número de variáveis de atribuição (" + lvalues.size() + ").");
+        }
+
+        for (int i = 0; i < returnedValues.size(); i++) {
+            String varName = ((VarAccessExp)lvalues.get(i)).name();
+            environment.assign(varName, returnedValues.get(i));
+        }
+        return new VoidValue();
+    }
+
     @Override
     public Value visit(PrintCmd c) {
-        Value val = c.exp().accept(this);
-        // O comando print é seguido por uma expressão
-        System.out.println(val.toString());
+        System.out.println(c.exp().accept(this).toString());
         return new VoidValue();
     }
 
     @Override
     public Value visit(ReturnCmd c) {
-        return new ReturnValue(c.exp().accept(this));
+        List<Value> values = new ArrayList<>();
+        c.exps().forEach(exp -> values.add(exp.accept(this)));
+        return new ReturnValue(values);
     }
 
+    // --- Visitantes de Expressão ---
     @Override
     public Value visit(BinOpExp e) {
         Value left = e.left().accept(this);
@@ -120,49 +223,154 @@ public class Interpreter implements Visitor<Value> {
                 case "-" -> new IntValue(l - r);
                 case "*" -> new IntValue(l * r);
                 case "/" -> new IntValue(l / r);
+                case "%" -> new IntValue(l % r);
                 case "<" -> new BoolValue(l < r);
+                case "==" -> new BoolValue(l == r);
+                case "!=" -> new BoolValue(l != r);
                 default -> throw new RuntimeException("Operador binário desconhecido para inteiros: " + e.op());
             };
+        } else if (left instanceof BoolValue && right instanceof BoolValue) {
+            boolean l = ((BoolValue) left).value();
+            boolean r = ((BoolValue) right).value();
+            return switch (e.op()) {
+                case "&&" -> new BoolValue(l && r);
+                case "==" -> new BoolValue(l == r);
+                case "!=" -> new BoolValue(l != r);
+                default -> throw new RuntimeException("Operador binário desconhecido para booleanos: " + e.op());
+            };
         }
-        throw new RuntimeException("Operação binária não suportada para os tipos dados.");
+        throw new RuntimeException("Operação binária não suportada para os tipos dados: " + left.getClass().getSimpleName() + " " + e.op() + " " + right.getClass().getSimpleName());
     }
 
     @Override
     public Value visit(FunCallExp e) {
         Value func = environment.get(e.name());
-        if (!(func instanceof FunctionValue)) {
-            throw new RuntimeException("Erro: '" + e.name() + "' não é uma função.");
-        }
+        if (!(func instanceof FunctionValue)) { throw new RuntimeException("'" + e.name() + "' não é uma função."); }
 
         List<Value> argValues = new ArrayList<>();
-        for (Exp arg : e.args()) {
-            argValues.add(arg.accept(this));
-        }
+        e.args().forEach(arg -> argValues.add(arg.accept(this)));
 
-        Value result = executeFunction((FunctionValue) func, argValues);
+        Value result = executeFunction((FunctionValue)func, argValues);
 
-        // Tratar o índice de retorno.
-        Value indexVal = e.returnIndex().accept(this);
-        if (!(indexVal instanceof IntValue)) {
-            throw new RuntimeException("Índice de retorno da função deve ser um inteiro.");
-        }
-        int index = ((IntValue) indexVal).value();
-
-        // Simplificação: o exemplo só tem um valor de retorno, no índice 0.
-        if (index == 0) {
-            return result;
+        if (e.returnIndex().isPresent()) {
+            if (!(result instanceof ListValue)) {
+                throw new RuntimeException("Retorno de função não é uma lista, não pode ser indexado.");
+            }
+            List<Value> values = ((ListValue)result).values();
+            Value indexVal = e.returnIndex().get().accept(this);
+            int index = ((IntValue)indexVal).value();
+            if (index < 0 || index >= values.size()) {
+                throw new RuntimeException("Índice de retorno fora dos limites: " + index);
+            }
+            return values.get(index);
         } else {
-            throw new RuntimeException("Índice de retorno inválido: " + index);
+            // Se não há índice, é porque a chamada é parte de um FuncCallAssignCmd, retornamos a lista.
+            return result;
         }
     }
 
+    @Override public Value visit(IntLiteralExp e) { return new IntValue(e.value()); }
+    @Override public Value visit(BoolLiteralExp e) { return new BoolValue(e.value()); }
+    @Override public Value visit(NullLiteralExp e) { return new NullValue(); }
+    @Override public Value visit(VarAccessExp e) { return environment.get(e.name()); }
+
     @Override
-    public Value visit(IntLiteralExp e) {
-        return new IntValue(e.value());
+    public Value visit(FloatLiteralExp e) {
+        return new FloatValue(e.value());
     }
 
     @Override
-    public Value visit(VarAccessExp e) {
-        return environment.get(e.name());
+    public Value visit(CharLiteralExp e) {
+        return new CharValue(e.value());
+    }
+
+    // --- Visitantes de Declarações ---
+
+
+    // --- Visitantes de Comandos ---
+
+    @Override
+    public Value visit(AssignCmd c) {
+        LValue lvalue = c.lvalue();
+        Value valueToAssign = c.exp().accept(this);
+
+        if (lvalue instanceof VarAccessExp va) {
+            environment.assign(va.name(), valueToAssign);
+        } else if (lvalue instanceof FieldAccessExp fa) {
+            Value record = fa.recordExp().accept(this);
+            if (record instanceof RecordValue rv) {
+                rv.fields().put(fa.fieldName(), valueToAssign);
+            } else { throw new RuntimeException("Atribuição a campo de um não-registro."); }
+        } else if (lvalue instanceof ArrayAccessExp aa) {
+            Value array = aa.arrayExp().accept(this);
+            Value index = aa.indexExp().accept(this);
+            if (array instanceof ArrayValue av && index instanceof IntValue iv) {
+                av.elements().set(iv.value(), valueToAssign);
+            } else { throw new RuntimeException("Atribuição a elemento de array inválida."); }
+        }
+        return new VoidValue();
+    }
+
+
+    // --- Visitantes de Expressões ---
+
+    @Override
+    public Value visit(UnaryExp e) {
+        Value val = e.exp().accept(this);
+        if (e.op().equals("-")) {
+            if (val instanceof IntValue iv) return new IntValue(-iv.value());
+            if (val instanceof FloatValue fv) return new FloatValue(-fv.value());
+        }
+        if (e.op().equals("!") && val instanceof BoolValue bv) {
+            return new BoolValue(!bv.value());
+        }
+        throw new RuntimeException("Operador unário '" + e.op() + "' não aplicável a " + val.getClass().getSimpleName());
+    }
+
+    @Override
+    public Value visit(NewExp e) {
+        if (e.type() instanceof BaseTypeNode btn) { // Ex: new Racional
+            DataDecl decl = dataDeclarations.get(btn.typeName());
+            if (decl == null) throw new RuntimeException("Tipo '" + btn.typeName() + "' não definido.");
+
+            Map<String, Value> fields = new HashMap<>();
+            for (DataDecl.Field field : decl.fields()) {
+                // Inicializa campos com valores padrão (null)
+                fields.put(field.name(), new NullValue());
+            }
+            return new RecordValue(btn.typeName(), fields);
+
+        } else if (e.type() instanceof ArrayTypeNode) { // Ex: new Int[10]
+            if (e.size().isEmpty()) throw new RuntimeException("Tamanho do array não especificado.");
+
+            Value sizeVal = e.size().get().accept(this);
+            if (!(sizeVal instanceof IntValue iv)) throw new RuntimeException("Tamanho do array deve ser inteiro.");
+
+            List<Value> elements = new ArrayList<>(Collections.nCopies(iv.value(), new NullValue()));
+            return new ArrayValue(elements);
+        }
+        throw new RuntimeException("Tipo inválido para 'new'.");
+    }
+
+    @Override
+    public Value visit(FieldAccessExp e) {
+        Value record = e.recordExp().accept(this);
+        if (record instanceof RecordValue rv) {
+            return rv.fields().get(e.fieldName());
+        }
+        throw new RuntimeException("Tentativa de acessar campo em um não-registro.");
+    }
+
+    @Override
+    public Value visit(ArrayAccessExp e) {
+        Value array = e.arrayExp().accept(this);
+        Value index = e.indexExp().accept(this);
+        if (array instanceof ArrayValue av && index instanceof IntValue iv) {
+            if (iv.value() < 0 || iv.value() >= av.elements().size()) {
+                throw new RuntimeException("Acesso a array fora dos limites.");
+            }
+            return av.elements().get(iv.value());
+        }
+        throw new RuntimeException("Acesso a array inválido.");
     }
 }

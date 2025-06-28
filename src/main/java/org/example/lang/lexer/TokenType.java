@@ -18,7 +18,7 @@ public enum TokenType {
     LPAREN, RPAREN, // ( )
     LBRACE, RBRACE, // { }
     LBRACK, RBRACK, // [ ]
-    COMMA, SEMI, COLON, DOT, // , ; : .
+    COMMA, SEMI, COLON, DOUBLE_COLON, DOT, // , ; : .
     PLUS, MINUS, STAR, SLASH, PERCENT, // + - * / %
     LT, EQ_EQ, NOT_EQ, // < == !=
     AND, NOT, // && !

@@ -1,10 +1,10 @@
 package org.example.lang.ast.exp;
 
+import org.example.lang.ast.TypeNode;
 import org.example.lang.ast.Visitor;
 
-/**
- * Representa o acesso a uma variável através de seu identificador (ID).
- */
-public record VarAccessExp(String name) implements LValue {
+import java.util.Optional;
+
+public record NewExp(TypeNode type, Optional<Exp> size) implements Exp {
     @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }
