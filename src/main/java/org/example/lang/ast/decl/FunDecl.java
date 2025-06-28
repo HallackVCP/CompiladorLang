@@ -9,7 +9,7 @@ import java.util.List;
  * Representa a definição de uma função.
  * Inclui seu nome, parâmetros, tipos de retorno e o comando que constitui seu corpo.
  */
-public record FunDecl(String name, List<Param> params, String returnType, Cmd body) implements Decl {
+public record FunDecl(String name, List<Param> params, List<String> returnTypes, Cmd body) implements Decl {
 
     /**
      * Representa um único parâmetro de função, com nome e tipo.

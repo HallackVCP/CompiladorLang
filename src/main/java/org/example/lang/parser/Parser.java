@@ -4,6 +4,8 @@ import org.example.lang.ast.*;
 import org.example.lang.ast.cmd.*;
 import org.example.lang.ast.decl.*;
 import org.example.lang.ast.exp.*;
+import org.example.lang.ast.type.ArrayTypeNode;
+import org.example.lang.ast.type.BaseTypeNode;
 import org.example.lang.lexer.*;
 import java.util.*;
 
@@ -13,16 +15,33 @@ public class Parser {
     private static final Map<TokenType, Integer> PRECEDENCE = new HashMap<>();
 
     static {
-        PRECEDENCE.put(TokenType.LT, 3); // Precedência dos operadores
+        PRECEDENCE.put(TokenType.AND, 1);
+        PRECEDENCE.put(TokenType.EQ_EQ, 2);
+        PRECEDENCE.put(TokenType.NOT_EQ, 2);
+        PRECEDENCE.put(TokenType.LT, 3);
         PRECEDENCE.put(TokenType.PLUS, 4);
         PRECEDENCE.put(TokenType.MINUS, 4);
         PRECEDENCE.put(TokenType.STAR, 5);
         PRECEDENCE.put(TokenType.SLASH, 5);
+        PRECEDENCE.put(TokenType.PERCENT, 5);
     }
 
     public Parser(String input) {
         this.lexer = new Lexer(input);
         this.currentToken = lexer.nextToken();
+    }
+
+    private Token eat(TokenType expected) {
+        Token t = currentToken;
+        if (t.type() != expected) {
+            throw new RuntimeException("Erro de sintaxe: esperado " + expected + ", mas encontrou " + t.type() + " ('" + t.lexeme() + "') na linha " + t.line());
+        }
+        currentToken = lexer.nextToken();
+        return t;
+    }
+
+    private boolean isBinaryOperator(TokenType type) {
+        return PRECEDENCE.containsKey(type);
     }
 
     public Program parseProgram() {
@@ -33,9 +52,41 @@ public class Parser {
         return new Program(decls);
     }
 
+    // --- Métodos de Parse de Declarações ---
+
     private Decl parseDeclaration() {
-        // Simplificação: apenas declarações de função
+        if (currentToken.type() == TokenType.ABSTRACT || currentToken.type() == TokenType.DATA) {
+            return parseDataDeclaration();
+        }
         return parseFunctionDeclaration();
+    }
+
+    private DataDecl parseDataDeclaration() {
+        boolean isAbstract = false;
+        if (currentToken.type() == TokenType.ABSTRACT) {
+            eat(TokenType.ABSTRACT);
+            isAbstract = true;
+        }
+        eat(TokenType.DATA);
+        String name = eat(TokenType.TYID).lexeme();
+        eat(TokenType.LBRACE);
+
+        List<DataDecl.Field> fields = new ArrayList<>();
+        while (currentToken.type() == TokenType.ID && peek().type() == TokenType.DOUBLE_COLON) { // Pode usar peek() para checar
+            String fieldName = eat(TokenType.ID).lexeme();
+            // Substitua as duas linhas 'eat(TokenType.COLON)' por esta única linha:
+            eat(TokenType.DOUBLE_COLON);
+            String fieldType = parseTypeNameAsString();
+            eat(TokenType.SEMI);
+            fields.add(new DataDecl.Field(fieldName, fieldType));
+        }
+
+        List<FunDecl> functions = new ArrayList<>();
+        while (currentToken.type() != TokenType.RBRACE) {
+            functions.add(parseFunctionDeclaration());
+        }
+        eat(TokenType.RBRACE);
+        return new DataDecl(isAbstract, name, fields, functions);
     }
 
     private FunDecl parseFunctionDeclaration() {
@@ -43,24 +94,31 @@ public class Parser {
         eat(TokenType.LPAREN);
         List<FunDecl.Param> params = new ArrayList<>();
         if (currentToken.type() != TokenType.RPAREN) {
-            // Parse params
-            String paramName = eat(TokenType.ID).lexeme();
-            eat(TokenType.COLON);
-            String paramType = eat(TokenType.INT_TYPE).lexeme(); // Simplificado para Int
-            params.add(new FunDecl.Param(paramName, paramType));
+            do {
+                String paramName = eat(TokenType.ID).lexeme();
+                // Substitua as duas linhas 'eat(TokenType.COLON)' por esta única linha:
+                eat(TokenType.DOUBLE_COLON);
+                String paramType = parseTypeNameAsString();
+                params.add(new FunDecl.Param(paramName, paramType));
+                if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
+            } while (true);
         }
         eat(TokenType.RPAREN);
 
-        // Parse return type
-        String returnType = "Void"; // Procedimento por padrão
+        List<String> returnTypes = new ArrayList<>();
         if (currentToken.type() == TokenType.COLON) {
             eat(TokenType.COLON);
-            returnType = eat(TokenType.INT_TYPE).lexeme(); // Simplificado para um retorno Int
+            do {
+                returnTypes.add(parseTypeNameAsString());
+                if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
+            } while (true);
         }
 
         Cmd body = parseCommand();
-        return new FunDecl(name, params, returnType, body);
+        return new FunDecl(name, params, returnTypes, body);
     }
+
+    // --- Métodos de Parse de Comandos ---
 
     private Cmd parseCommand() {
         return switch (currentToken.type()) {
@@ -68,21 +126,17 @@ public class Parser {
             case IF -> parseIf();
             case PRINT -> parsePrint();
             case RETURN -> parseReturn();
-            default -> {
-                // Ambiguidade: pode ser atribuição ou chamada de procedimento.
-                // A gramática para chamada de função com atribuição de retorno é `ID ( [exps] ) '<' lvalue ... '>'`
-                // A gramática para chamada de procedimento é `ID ( [exps] )`
-                // A gramática de atribuição é `lvalue '=' exp`
-                // O exemplo `fat` não tem atribuições, então simplificamos.
-                throw new RuntimeException("Comando não implementado ou inválido na linha " + currentToken.line());
-            }
+            case ITERATE -> parseIterate();
+            case READ -> parseRead();
+            case ID -> parseAssignmentOrCall();
+            default -> throw new RuntimeException("Comando inválido '" + currentToken.lexeme() + "' na linha " + currentToken.line());
         };
     }
 
     private BlockCmd parseBlock() {
         eat(TokenType.LBRACE);
         List<Cmd> cmds = new ArrayList<>();
-        while (currentToken.type() != TokenType.RBRACE) {
+        while (currentToken.type() != TokenType.RBRACE && currentToken.type() != TokenType.EOF) {
             cmds.add(parseCommand());
         }
         eat(TokenType.RBRACE);
@@ -103,6 +157,30 @@ public class Parser {
         return new IfCmd(condition, thenBranch, elseBranch);
     }
 
+    private IterateCmd parseIterate() {
+        eat(TokenType.ITERATE);
+        eat(TokenType.LPAREN);
+        Optional<String> var = Optional.empty();
+        Exp collection;
+        if (peek().type() == TokenType.COLON) {
+            var = Optional.of(eat(TokenType.ID).lexeme());
+            eat(TokenType.COLON);
+            collection = parseExpression();
+        } else {
+            collection = parseExpression();
+        }
+        eat(TokenType.RPAREN);
+        Cmd body = parseCommand();
+        return new IterateCmd(var, collection, body);
+    }
+
+    private ReadCmd parseRead() {
+        eat(TokenType.READ);
+        LValue lvalue = parseLValue();
+        eat(TokenType.SEMI);
+        return new ReadCmd(lvalue);
+    }
+
     private PrintCmd parsePrint() {
         eat(TokenType.PRINT);
         Exp exp = parseExpression();
@@ -112,28 +190,67 @@ public class Parser {
 
     private ReturnCmd parseReturn() {
         eat(TokenType.RETURN);
-        Exp exp = parseExpression();
+        List<Exp> exps = parseExpressionList();
         eat(TokenType.SEMI);
-        return new ReturnCmd(exp);
+        return new ReturnCmd(exps);
     }
 
-    private Exp parseExpression() {
-        return parseExpression(0);
+    private Cmd parseAssignmentOrCall() {
+        LValue lvalue = parseLValue();
+
+        if (lvalue instanceof VarAccessExp && currentToken.type() == TokenType.LPAREN) {
+            // É uma chamada de função ou procedimento
+            String funcName = ((VarAccessExp)lvalue).name();
+            eat(TokenType.LPAREN);
+            List<Exp> args = parseExpressionList();
+            eat(TokenType.RPAREN);
+
+            if (currentToken.type() == TokenType.LT) { // Atribuição de retorno: f(..)<v1,v2>;
+                eat(TokenType.LT);
+                List<LValue> assignTo = new ArrayList<>();
+                if (currentToken.type() != TokenType.RETURN_VALUES_CLOSE) {
+                    do {
+                        assignTo.add(parseLValue());
+                        if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
+                    } while (true);
+                }
+                eat(TokenType.RETURN_VALUES_CLOSE);
+                eat(TokenType.SEMI);
+                FunCallExp call = new FunCallExp(funcName, args, Optional.empty());
+                return new FuncCallAssignCmd(call, assignTo);
+            } else { // Chamada de procedimento: f(...);
+                eat(TokenType.SEMI);
+                return new ProcCallCmd(funcName, args);
+            }
+        } else { // É uma atribuição
+            eat(TokenType.ASSIGN);
+            Exp exp = parseExpression();
+            eat(TokenType.SEMI);
+            return new AssignCmd(lvalue, exp);
+        }
     }
 
-    // Algoritmo Precedence Climbing para tratar a precedência de operadores
+    // --- Métodos de Parse de Expressões e Tipos ---
+
+    private Exp parseExpression() { return parseExpression(0); }
+
     private Exp parseExpression(int minPrecedence) {
-        Exp left = parsePrimaryExpression();
+        Exp left;
+        if (currentToken.type() == TokenType.NOT || currentToken.type() == TokenType.MINUS) {
+            Token op = eat(currentToken.type());
+            Exp exp = parseExpression(6); // Precedência de unários
+            left = new UnaryExp(op.lexeme(), exp);
+        } else {
+            left = parsePrimaryExpression();
+        }
 
         while (isBinaryOperator(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
-            Token opToken = currentToken;
+            Token opToken = eat(currentToken.type());
             int currentPrecedence = PRECEDENCE.get(opToken.type());
-            eat(opToken.type());
-
+            // Associatividade à direita (não temos, mas seria `currentPrecedence`)
             Exp right = parseExpression(currentPrecedence + 1);
             left = new BinOpExp(left, opToken.lexeme(), right);
         }
-
         return left;
     }
 
@@ -143,44 +260,128 @@ public class Parser {
             case INT:
                 eat(TokenType.INT);
                 return new IntLiteralExp(Integer.parseInt(token.lexeme()));
-            case ID:
-                eat(TokenType.ID);
-                if (currentToken.type() == TokenType.LPAREN) { // Chamada de função
-                    eat(TokenType.LPAREN);
-                    List<Exp> args = new ArrayList<>();
-                    if (currentToken.type() != TokenType.RPAREN) {
-                        args.add(parseExpression());
-                    }
-                    eat(TokenType.RPAREN);
-
-                    // A chamada de função é uma expressão que precisa de um índice de retorno
-                    eat(TokenType.LBRACK);
-                    Exp index = parseExpression();
-                    eat(TokenType.RBRACK);
-
-                    return new FunCallExp(token.lexeme(), args, index);
-                }
-                return new VarAccessExp(token.lexeme());
+            case FLOAT:
+                eat(TokenType.FLOAT);
+                return new FloatLiteralExp(Float.parseFloat(token.lexeme()));
+            case CHAR:
+                eat(TokenType.CHAR);
+                return new CharLiteralExp(token.lexeme().charAt(0));
+            case TRUE:
+                eat(TokenType.TRUE);
+                return new BoolLiteralExp(true);
+            case FALSE:
+                eat(TokenType.FALSE);
+                return new BoolLiteralExp(false);
+            case NULL:
+                eat(TokenType.NULL);
+                return new NullLiteralExp();
+            case NEW:
+                return parseNewExpression();
             case LPAREN:
                 eat(TokenType.LPAREN);
                 Exp exp = parseExpression();
                 eat(TokenType.RPAREN);
                 return exp;
+            case ID:
+                // CORREÇÃO: Verificamos o próximo token para resolver a ambiguidade.
+                // Se for '(', é uma chamada de função. Senão, é um lvalue.
+                if (peek().type() == TokenType.LPAREN) {
+                    return parseFunctionCallExpression();
+                } else {
+                    return parseLValue();
+                }
             default:
                 throw new RuntimeException("Expressão primária inesperada: " + token.lexeme() + " na linha " + token.line());
         }
     }
 
-    private Token eat(TokenType expected) {
-        Token t = currentToken;
-        if (t.type() != expected) {
-            throw new RuntimeException("Erro de sintaxe: esperado " + expected + ", mas encontrou " + t.type() + " ('" + t.lexeme() + "') na linha " + t.line());
+    private FunCallExp parseFunctionCallExpression() {
+        String idName = eat(TokenType.ID).lexeme();
+        eat(TokenType.LPAREN);
+        List<Exp> args = parseExpressionList();
+        eat(TokenType.RPAREN);
+        Optional<Exp> returnIndex = Optional.empty();
+        if (currentToken.type() == TokenType.LBRACK) {
+            eat(TokenType.LBRACK);
+            returnIndex = Optional.of(parseExpression());
+            eat(TokenType.RBRACK);
         }
-        currentToken = lexer.nextToken();
-        return t;
+        return new FunCallExp(idName, args, returnIndex);
     }
 
-    private boolean isBinaryOperator(TokenType type) {
-        return PRECEDENCE.containsKey(type);
+    private NewExp parseNewExpression() {
+        eat(TokenType.NEW);
+        TypeNode type = parseTypeNode();
+        Optional<Exp> size = Optional.empty();
+        if (currentToken.type() == TokenType.LBRACK) {
+            eat(TokenType.LBRACK);
+            size = Optional.of(parseExpression());
+            eat(TokenType.RBRACK);
+        }
+        return new NewExp(type, size);
+    }
+
+    private LValue parseLValue() {
+        Exp base = new VarAccessExp(eat(TokenType.ID).lexeme());
+        while (true) {
+            if (currentToken.type() == TokenType.LBRACK) {
+                eat(TokenType.LBRACK);
+                Exp index = parseExpression();
+                eat(TokenType.RBRACK);
+                base = new ArrayAccessExp(base, index);
+            } else if (currentToken.type() == TokenType.DOT) {
+                eat(TokenType.DOT);
+                String fieldName = eat(TokenType.ID).lexeme();
+                base = new FieldAccessExp(base, fieldName);
+            } else {
+                break;
+            }
+        }
+        if (!(base instanceof LValue)) {
+            throw new RuntimeException("Expressão inválida para o lado esquerdo de uma atribuição.");
+        }
+        return (LValue)base;
+    }
+
+    private List<Exp> parseExpressionList() {
+        List<Exp> exps = new ArrayList<>();
+        if (currentToken.type() == TokenType.RPAREN || currentToken.type() == TokenType.SEMI) {
+            return exps;
+        }
+        do {
+            exps.add(parseExpression());
+            if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
+        } while (true);
+        return exps;
+    }
+
+    private TypeNode parseTypeNode() {
+        TypeNode type = switch(currentToken.type()) {
+            case INT_TYPE -> new BaseTypeNode(eat(TokenType.INT_TYPE).lexeme());
+            case BOOL_TYPE -> new BaseTypeNode(eat(TokenType.BOOL_TYPE).lexeme());
+            case CHAR_TYPE -> new BaseTypeNode(eat(TokenType.CHAR_TYPE).lexeme());
+            case FLOAT_TYPE -> new BaseTypeNode(eat(TokenType.FLOAT_TYPE).lexeme());
+            case TYID -> new BaseTypeNode(eat(TokenType.TYID).lexeme());
+            default -> throw new RuntimeException("Nome de tipo base esperado.");
+        };
+
+        while (currentToken.type() == TokenType.LBRACK) {
+            eat(TokenType.LBRACK);
+            eat(TokenType.RBRACK);
+            type = new ArrayTypeNode(type);
+        }
+        return type;
+    }
+
+    // Helper para manter a simplicidade em locais que só precisam do nome do tipo como String
+    private String parseTypeNameAsString() {
+        return parseTypeNode().toString(); // Uma representação em string simples
+    }
+
+    private Token peek() {
+        // Implementar um buffer de lookahead no Lexer seria mais eficiente
+        // Esta é uma simplificação.
+        Lexer tempLexer = new Lexer(lexer.getInput().substring(lexer.getPosition()));
+        return tempLexer.nextToken();
     }
 }

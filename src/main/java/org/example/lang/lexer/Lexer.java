@@ -15,13 +15,18 @@ public class Lexer {
         KEYWORDS.put("else", TokenType.ELSE);
         KEYWORDS.put("return", TokenType.RETURN);
         KEYWORDS.put("print", TokenType.PRINT);
+        KEYWORDS.put("read", TokenType.READ);
+        KEYWORDS.put("iterate", TokenType.ITERATE);
+        KEYWORDS.put("data", TokenType.DATA);
+        KEYWORDS.put("abstract", TokenType.ABSTRACT);
+        KEYWORDS.put("new", TokenType.NEW);
         KEYWORDS.put("Int", TokenType.INT_TYPE);
         KEYWORDS.put("Bool", TokenType.BOOL_TYPE);
         KEYWORDS.put("Char", TokenType.CHAR_TYPE);
         KEYWORDS.put("Float", TokenType.FLOAT_TYPE);
         KEYWORDS.put("true", TokenType.TRUE);
         KEYWORDS.put("false", TokenType.FALSE);
-        // Adicionar outras palavras-chave conforme necessário...
+        KEYWORDS.put("null", TokenType.NULL);
     }
 
     public Lexer(String input) {
@@ -29,10 +34,6 @@ public class Lexer {
     }
 
     public Token nextToken() {
-        if (position >= input.length()) {
-            return new Token(TokenType.EOF, "", line, column);
-        }
-
         skipWhitespaceAndComments();
 
         if (position >= input.length()) {
@@ -45,59 +46,60 @@ public class Lexer {
         if (Character.isLetter(current)) {
             return identifierOrKeyword();
         }
-        if (Character.isDigit(current)) {
+        if (Character.isDigit(current) || (current == '.' && Character.isDigit(peek()))) {
             return number();
         }
 
-        return switch (current) {
-            case '(' -> consumeAndReturn(TokenType.LPAREN);
-            case ')' -> consumeAndReturn(TokenType.RPAREN);
-            case '{' -> consumeAndReturn(TokenType.LBRACE);
-            case '}' -> consumeAndReturn(TokenType.RBRACE);
-            case '[' -> consumeAndReturn(TokenType.LBRACK);
-            case ']' -> consumeAndReturn(TokenType.RBRACK);
-            case ',' -> consumeAndReturn(TokenType.COMMA);
-            case ';' -> consumeAndReturn(TokenType.SEMI);
-            case ':' -> consumeAndReturn(TokenType.COLON);
-            case '.' -> consumeAndReturn(TokenType.DOT);
-            case '+' -> consumeAndReturn(TokenType.PLUS);
-            case '-' -> consumeAndReturn(TokenType.MINUS);
-            case '*' -> consumeAndReturn(TokenType.STAR);
-            case '/' -> consumeAndReturn(TokenType.SLASH);
-            case '%' -> consumeAndReturn(TokenType.PERCENT);
-            case '<' -> {
-                // Em 'lang', '<' pode ser um operador relacional ou o início da atribuição de múltiplos retornos.
-                // O parser resolverá a ambiguidade com base no contexto. O lexer só precisa tokenizar.
-                // A gramática `lvalue { ',' lvalue}` '>' ajuda a diferenciar. Aqui, vamos assumir que pode ser para ambos.
-                yield consumeAndReturn(TokenType.LT);
-            }
-            case '>' -> consumeAndReturn(TokenType.RETURN_VALUES_CLOSE);
-            case '=' -> {
-                if (peek() == '=') {
-                    advance();
-                    yield consumeAndReturn(TokenType.EQ_EQ);
+        switch (current) {
+            case '(': return consumeAndReturn(TokenType.LPAREN, 1);
+            case ')': return consumeAndReturn(TokenType.RPAREN, 1);
+            case '{': return consumeAndReturn(TokenType.LBRACE, 1);
+            case '}': return consumeAndReturn(TokenType.RBRACE, 1);
+            case '[': return consumeAndReturn(TokenType.LBRACK, 1);
+            case ']': return consumeAndReturn(TokenType.RBRACK, 1);
+            case ',': return consumeAndReturn(TokenType.COMMA, 1);
+            case ';': return consumeAndReturn(TokenType.SEMI, 1);
+            case '.': return consumeAndReturn(TokenType.DOT, 1);
+            case '+': return consumeAndReturn(TokenType.PLUS, 1);
+            case '-': return consumeAndReturn(TokenType.MINUS, 1);
+            case '*': return consumeAndReturn(TokenType.STAR, 1);
+            case '/': return consumeAndReturn(TokenType.SLASH, 1);
+            case '%': return consumeAndReturn(TokenType.PERCENT, 1);
+            case '>': return consumeAndReturn(TokenType.RETURN_VALUES_CLOSE, 1);
+
+            case '\'': return charLiteral();
+
+            case ':':
+                if (peek() == ':') {
+                    return consumeAndReturn(TokenType.DOUBLE_COLON, 2); // Gera '::' como um token único e distinto
                 }
-                yield consumeAndReturn(TokenType.ASSIGN);
-            }
-            case '!' -> {
+                return consumeAndReturn(TokenType.COLON, 1); // Gera ':' normal
+
+            case '<':
+                // O parser diferencia `divmod(..)<...>` de `a < b` pelo contexto.
+                return consumeAndReturn(TokenType.LT, 1);
+
+            case '=':
                 if (peek() == '=') {
-                    advance();
-                    yield consumeAndReturn(TokenType.NOT_EQ);
+                    return consumeAndReturn(TokenType.EQ_EQ, 2);
                 }
-                yield consumeAndReturn(TokenType.NOT);
-            }
-            case '&' -> {
+                return consumeAndReturn(TokenType.ASSIGN, 1);
+
+            case '!':
+                if (peek() == '=') {
+                    return consumeAndReturn(TokenType.NOT_EQ, 2);
+                }
+                return consumeAndReturn(TokenType.NOT, 1);
+
+            case '&':
                 if (peek() == '&') {
-                    advance();
-                    yield consumeAndReturn(TokenType.AND);
+                    return consumeAndReturn(TokenType.AND, 2);
                 }
-                yield new Token(TokenType.UNKNOWN, String.valueOf(current), line, startCol);
-            }
-            default -> {
-                advance();
-                yield new Token(TokenType.UNKNOWN, String.valueOf(current), line, startCol);
-            }
-        };
+                break;
+        }
+
+        advance();
+        return new Token(TokenType.UNKNOWN, String.valueOf(current), line, startCol);
     }
 
     private void skipWhitespaceAndComments() {
@@ -111,24 +113,17 @@ public class Lexer {
                     column++;
                 }
                 position++;
-            } else if (current == '/' && peek() == '/') { // Comentário de uma linha
+            } else if (current == '/' && peek() == '/') { // Comentário de linha `//`
                 while (position < input.length() && currentChar() != '\n') {
                     position++;
                 }
-            } else if (current == '{' && peek() == '-') { // Comentário de múltiplas linhas
-                position += 2; // Pula {-
+            } else if (current == '{' && peek() == '-') { // Comentário de bloco `{- ... -}`
+                position += 2;
                 while (position < input.length() - 1 && !(currentChar() == '-' && peek() == '}')) {
-                    if (currentChar() == '\n') {
-                        line++;
-                        column = 1;
-                    } else {
-                        column++;
-                    }
+                    if (currentChar() == '\n') { line++; column = 1; } else { column++; }
                     position++;
                 }
-                if (position < input.length() - 1) {
-                    position += 2; // Pula -}
-                }
+                if (position < input.length() - 1) { position += 2; }
             } else {
                 break;
             }
@@ -138,36 +133,69 @@ public class Lexer {
     private Token identifierOrKeyword() {
         int start = position;
         int startCol = column;
-        // Um identificador é uma sequência de letras, dígitos e underscores
         while (position < input.length() && (Character.isLetterOrDigit(currentChar()) || currentChar() == '_')) {
             advance();
         }
         String lexeme = input.substring(start, position);
         TokenType type = KEYWORDS.getOrDefault(lexeme, TokenType.ID);
 
-        // Se é um ID, verificar se é TYID
-        if (type == TokenType.ID && Character.isUpperCase(lexeme.charAt(0))) {
-            type = TokenType.TYID; // Nomes de tipo começam com letra maiúscula
-        } else if (type == TokenType.ID && !Character.isLowerCase(lexeme.charAt(0))) {
-            // IDs devem começar com letra minúscula
-            throw new RuntimeException("Erro léxico: Identificador '" + lexeme + "' deve começar com letra minúscula na linha " + line);
+        if (type == TokenType.ID) {
+            if (Character.isUpperCase(lexeme.charAt(0))) {
+                type = TokenType.TYID;
+            } else if (!Character.isLowerCase(lexeme.charAt(0))) {
+                throw new RuntimeException("Erro léxico: Identificador '" + lexeme + "' deve começar com letra na linha " + line);
+            }
         }
-
         return new Token(type, lexeme, line, startCol);
     }
 
     private Token number() {
         int start = position;
         int startCol = column;
+        boolean isFloat = false;
         while (position < input.length() && Character.isDigit(currentChar())) {
             advance();
         }
-        // Simplificação: não estamos tratando floats nesta entrega, conforme o exemplo.
+        if (position < input.length() && currentChar() == '.') {
+            isFloat = true;
+            advance();
+            while (position < input.length() && Character.isDigit(currentChar())) {
+                advance();
+            }
+        }
         String lexeme = input.substring(start, position);
-        return new Token(TokenType.INT, lexeme, line, startCol);
+        return new Token(isFloat ? TokenType.FLOAT : TokenType.INT, lexeme, line, startCol);
+    }
+
+    private Token charLiteral() {
+        int startCol = column;
+        eat('\'');
+        char value = currentChar();
+        if (value == '\\') { // Caractere de escape
+            advance();
+            value = switch (currentChar()) {
+                case 'n' -> '\n';
+                case 't' -> '\t';
+                case '\'' -> '\'';
+                case '\\' -> '\\';
+                default -> throw new RuntimeException("Caractere de escape inválido: \\" + currentChar());
+            };
+        }
+        advance();
+        eat('\'');
+        return new Token(TokenType.CHAR, String.valueOf(value), line, startCol);
+    }
+
+    private void eat(char c) {
+        if (position < input.length() && currentChar() == c) {
+            advance();
+        } else {
+            throw new RuntimeException("Erro léxico: esperado '" + c + "' na linha " + line);
+        }
     }
 
     private char currentChar() {
+        if (position >= input.length()) return '\0';
         return input.charAt(position);
     }
 
@@ -178,15 +206,30 @@ public class Lexer {
 
     private void advance() {
         if (position < input.length()) {
-            column++;
+            if (currentChar() == '\n') { line++; column = 1; } else { column++; }
             position++;
         }
     }
 
-    private Token consumeAndReturn(TokenType type) {
-        String lexeme = input.substring(position, position + type.toString().length());
+    private Token consumeAndReturn(TokenType type, int length) {
+        String lexeme = input.substring(position, position + length);
         int startCol = column;
-        advance();
+        for (int i = 0; i < length; i++) advance();
         return new Token(type, lexeme, line, startCol);
+    }
+    /**
+     * Retorna toda a string de entrada do código fonte.
+     * Usado pelo Parser para a funcionalidade de 'peek'.
+     */
+    public String getInput() {
+        return this.input;
+    }
+
+    /**
+     * Retorna a posição atual do cursor no código fonte.
+     * Usado pelo Parser para a funcionalidade de 'peek'.
+     */
+    public int getPosition() {
+        return this.position;
     }
 }
