@@ -6,7 +6,9 @@ main() {
   a[3] = a[0] + a[1];
 
   print a[3]; // Imprime 15
-  //print a[2]; // Imprime null (valor padrão)
+  print a[2]; // Imprime null (valor padrão)
+  a[0] = 12;
+  print a[0];
 
   // Iteração sobre um array.
   iterate(elem: a) {

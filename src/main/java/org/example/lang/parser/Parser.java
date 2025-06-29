@@ -324,6 +324,7 @@ public class Parser {
         eat(TokenType.NEW);
         // Primeiro, analisamos apenas o tipo base (ex: Int, Ponto, etc.)
         TypeNode baseType = parseBaseTypeNode();
+        //TypeNode baseType = parseTypeNode();
 
         // Em seguida, verificamos se é uma alocação de array com tamanho
         if (currentToken.type() == TokenType.LBRACK) {

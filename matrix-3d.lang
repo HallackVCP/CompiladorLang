@@ -1,0 +1,42 @@
+// Exemplo que cria, preenche e depois imprime todos os
+// elementos de uma matriz de 3 dimensões (tamanho 2x2x3).
+main() {
+  // --- PASSO 1: Criação e Preenchimento da Estrutura ---
+  
+  // Cria o contêiner da primeira dimensão (tamanho 2)
+  cubo = new Int[2];
+
+  // Laços aninhados para criar e preencher as outras dimensões
+  iterate(i: 2) {
+    // Cria a "fatia" 2D (tamanho 2)
+    fatia_2d = new Int[2];
+    cubo[i] = fatia_2d;
+
+    iterate(j: 2) {
+      // Cria a "linha" 1D (tamanho 3)
+      linha = new Int[3];
+      
+      // Preenche a linha com valores únicos baseados nos índices
+      iterate(k: 3) {
+        linha[k] = i * 100 + j * 10 + k;
+      }
+      
+      // Atribui a linha à posição correta na fatia 2D
+      cubo[i][j] = linha;
+    }
+  }
+
+  // --- PASSO 2: Impressão de todos os elementos ---
+
+  print 9999; // Imprime um separador para clareza na saída.
+
+  // Laço triplamente aninhado para percorrer a estrutura 2x2x3
+  iterate(i: 2) {      // Itera sobre a 1ª dimensão (índices 0 e 1)
+    iterate(j: 2) {    // Itera sobre a 2ª dimensão (índices 0 e 1)
+      iterate(k: 3) {  // Itera sobre a 3ª dimensão (índices 0, 1 e 2)
+        // Acessa o elemento usando os três índices e o imprime.
+        print cubo[i][j][k];
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+// Exemplo de como criar e usar uma matriz 3x2 com a versão anterior do parser.
+main() {
+  // Passo 1: Crie o array principal (o "contêiner" das linhas).
+  // O parser antigo entende esta sintaxe. Em tempo de execução,
+  // isso cria um array de 3 elementos, todos com valor 'null'.
+  matrix = new Int[3];
+
+  // Passo 2: Itere para criar cada linha (que é um array) individualmente.
+  iterate(i: 3) {
+    // Cria uma nova linha como um array de 2 inteiros.
+    linha_atual = new Int[2];
+    linha_atual[0] = i;       // Coluna 0 recebe o número da linha
+    linha_atual[1] = i * 10;  // Coluna 1 recebe um valor calculado
+
+    // Atribui a linha recém-criada (um ArrayValue) a uma posição na matriz.
+    // O interpretador permite aninhar um array dentro de outro.
+    matrix[i] = linha_atual;
+  }
+
+  // Passo 3: Acesse e imprima um elemento para testar.
+  // O acesso aninhado funciona porque o interpretador processa a expressão
+  // da esquerda para a direita.
+  // matrix[1] é avaliado primeiro, resultando em um ArrayValue (a segunda linha).
+  // Em seguida, [1] é avaliado nesse resultado.
+  print matrix[2][0];
+}

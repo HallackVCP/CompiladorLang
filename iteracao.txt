@@ -1,13 +1,14 @@
 main() {
-  // Testa a primeira forma: iterate(exp)[cite: 294].
+  // Testa a primeira forma: iterate(exp)
   print 1000;
   iterate(4) {
     print 1;
   }
 
-  // Testa a segunda forma: iterate(id: exp)[cite: 296].
+  // Testa a segunda forma: iterate(id: exp)
   print 2000;
   iterate(i: 3) { // i terá os valores 0, 1, 2
+	i = i + 10;
     print i;
   }
 }

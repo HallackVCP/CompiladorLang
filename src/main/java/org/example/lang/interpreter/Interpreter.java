@@ -142,7 +142,9 @@ public class Interpreter implements Visitor<Value> {
             if (collection instanceof ArrayValue av) {
                 items.addAll(av.elements());
             } else if (collection instanceof IntValue iv) { // `iterate(i: 5)` itera de 0 a 4
-                for (int i = 0; i < iv.value(); i++) { items.add(new IntValue(i)); }
+                for (int i = 0; i < iv.value(); i++) {
+                    items.add(new IntValue(i));
+                }
             } else { throw new RuntimeException("Iteração com variável só suporta arrays ou inteiros."); }
 
             for (Value item : items) {
@@ -210,10 +212,62 @@ public class Interpreter implements Visitor<Value> {
     }
 
     // --- Visitantes de Expressão ---
+//    @Override
+//    public Value visit(BinOpExp e) {
+//        Value left = e.left().accept(this);
+//        Value right = e.right().accept(this);
+//
+//        if (left instanceof IntValue && right instanceof IntValue) {
+//            int l = ((IntValue) left).value();
+//            int r = ((IntValue) right).value();
+//            return switch (e.op()) {
+//                case "+" -> new IntValue(l + r);
+//                case "-" -> new IntValue(l - r);
+//                case "*" -> new IntValue(l * r);
+//                case "/" -> new IntValue(l / r);
+//                case "%" -> new IntValue(l % r);
+//                case "<" -> new BoolValue(l < r);
+//                case "==" -> new BoolValue(l == r);
+//                case "!=" -> new BoolValue(l != r);
+//                default -> throw new RuntimeException("Operador binário desconhecido para inteiros: " + e.op());
+//            };
+//        } else if (left instanceof BoolValue && right instanceof BoolValue) {
+//            boolean l = ((BoolValue) left).value();
+//            boolean r = ((BoolValue) right).value();
+//            return switch (e.op()) {
+//                case "&&" -> new BoolValue(l && r);
+//                case "==" -> new BoolValue(l == r);
+//                case "!=" -> new BoolValue(l != r);
+//                default -> throw new RuntimeException("Operador binário desconhecido para booleanos: " + e.op());
+//            };
+//        }
+//        throw new RuntimeException("Operação binária não suportada para os tipos dados: " + left.getClass().getSimpleName() + " " + e.op() + " " + right.getClass().getSimpleName());
+//    }
     @Override
     public Value visit(BinOpExp e) {
         Value left = e.left().accept(this);
         Value right = e.right().accept(this);
+        if (left instanceof NullValue || right instanceof NullValue) {
+            if (e.op().equals("+") || e.op().equals("-") || e.op().equals("*") || e.op().equals("/") || e.op().equals("%")) {
+                throw new RuntimeException("Operações aritméticas não podem ser realizadas com null.");
+            }
+            if (e.op().equals("<")) {
+                throw new RuntimeException("Comparação com null não é suportada.");
+            }
+        }
+        if (e.op().equals("==")) {
+            boolean leftIsNull = left instanceof NullValue;
+            boolean rightIsNull = right instanceof NullValue;
+            if (leftIsNull || rightIsNull) {
+                return new BoolValue(leftIsNull == rightIsNull);
+            }
+        } else if (e.op().equals("!=")) {
+            boolean leftIsNull = left instanceof NullValue;
+            boolean rightIsNull = right instanceof NullValue;
+            if (leftIsNull || rightIsNull) {
+                return new BoolValue(leftIsNull != rightIsNull);
+            }
+        }
 
         if (left instanceof IntValue && right instanceof IntValue) {
             int l = ((IntValue) left).value();
@@ -227,18 +281,34 @@ public class Interpreter implements Visitor<Value> {
                 case "<" -> new BoolValue(l < r);
                 case "==" -> new BoolValue(l == r);
                 case "!=" -> new BoolValue(l != r);
-                default -> throw new RuntimeException("Operador binário desconhecido para inteiros: " + e.op());
+                default -> throw new RuntimeException("Operador binário '" + e.op() + "' inválido para inteiros.");
             };
-        } else if (left instanceof BoolValue && right instanceof BoolValue) {
+        }
+        if ((left instanceof IntValue || left instanceof FloatValue) && (right instanceof IntValue || right instanceof FloatValue)) {
+            float l = (left instanceof IntValue) ? ((IntValue) left).value() : ((FloatValue) left).value();
+            float r = (right instanceof IntValue) ? ((IntValue) right).value() : ((FloatValue) right).value();
+            return switch (e.op()) {
+                case "+" -> new FloatValue(l + r);
+                case "-" -> new FloatValue(l - r);
+                case "*" -> new FloatValue(l * r);
+                case "/" -> new FloatValue(l / r);
+                case "<" -> new BoolValue(l < r);
+                case "==" -> new BoolValue(l == r);
+                case "!=" -> new BoolValue(l != r);
+                default -> throw new RuntimeException("Operador binário '" + e.op() + "' inválido para números.");
+            };
+        }
+        if (left instanceof BoolValue && right instanceof BoolValue) {
             boolean l = ((BoolValue) left).value();
             boolean r = ((BoolValue) right).value();
             return switch (e.op()) {
                 case "&&" -> new BoolValue(l && r);
                 case "==" -> new BoolValue(l == r);
                 case "!=" -> new BoolValue(l != r);
-                default -> throw new RuntimeException("Operador binário desconhecido para booleanos: " + e.op());
+                default -> throw new RuntimeException("Operador binário '" + e.op() + "' inválido para booleanos.");
             };
         }
+
         throw new RuntimeException("Operação binária não suportada para os tipos dados: " + left.getClass().getSimpleName() + " " + e.op() + " " + right.getClass().getSimpleName());
     }
 
