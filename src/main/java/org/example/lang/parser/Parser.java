@@ -127,7 +127,11 @@ public class Parser {
             case RETURN -> parseReturn();
             case ITERATE -> parseIterate();
             case READ -> parseRead();
-            case ID -> parseAssignmentOrCall();
+            case ID ->{
+                LValue lvalue = parseLValue();
+                if (lvalue instanceof VarAccessExp && currentToken.type() == TokenType.LPAREN) yield parseCall(lvalue);
+                else yield  parseAssignment(lvalue);
+            }
             default -> throw new RuntimeException("Comando inválido '" + currentToken.lexeme() + "' na linha " + currentToken.line());
         };
     }
@@ -194,38 +198,37 @@ public class Parser {
         return new ReturnCmd(exps);
     }
 
-    private Cmd parseAssignmentOrCall() {
-        LValue lvalue = parseLValue();
+    private Cmd parseAssignment(LValue lvalue){
+        eat(TokenType.ASSIGN);
+        Exp exp = parseExpression();//TODO: CHECK THIS METHOD
+        eat(TokenType.SEMI);
+        return new AssignCmd(lvalue, exp);
+    }
 
-        if (lvalue instanceof VarAccessExp && currentToken.type() == TokenType.LPAREN) {
-            // É uma chamada de função ou procedimento
-            String funcName = ((VarAccessExp)lvalue).name();
-            eat(TokenType.LPAREN);
-            List<Exp> args = parseExpressionList();
-            eat(TokenType.RPAREN);
+    private Cmd parseCall(LValue lvalue){
 
-            if (currentToken.type() == TokenType.LT) { // Atribuição de retorno: f(..)<v1,v2>;
-                eat(TokenType.LT);
-                List<LValue> assignTo = new ArrayList<>();
-                if (currentToken.type() != TokenType.RETURN_VALUES_CLOSE) {
-                    do {
-                        assignTo.add(parseLValue());
-                        if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
-                    } while (true);
-                }
-                eat(TokenType.RETURN_VALUES_CLOSE);
-                eat(TokenType.SEMI);
-                FunCallExp call = new FunCallExp(funcName, args, Optional.empty());
-                return new FuncCallAssignCmd(call, assignTo);
-            } else { // Chamada de procedimento: f(...);
-                eat(TokenType.SEMI);
-                return new ProcCallCmd(funcName, args);
+        // É uma chamada de função ou procedimento
+        String funcName = ((VarAccessExp)lvalue).name();
+        eat(TokenType.LPAREN);
+        List<Exp> args = parseExpressionList();
+        eat(TokenType.RPAREN);
+
+        if (currentToken.type() == TokenType.LT) { // Atribuição de retorno: f(..)<v1,v2>;
+            eat(TokenType.LT);
+            List<LValue> assignTo = new ArrayList<>();
+            if (currentToken.type() != TokenType.RETURN_VALUES_CLOSE) {
+                do {
+                    assignTo.add(parseLValue());
+                    if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
+                } while (true);
             }
-        } else { // É uma atribuição
-            eat(TokenType.ASSIGN);
-            Exp exp = parseExpression();//TODO: CHECK THIS METHOD
+            eat(TokenType.RETURN_VALUES_CLOSE);
             eat(TokenType.SEMI);
-            return new AssignCmd(lvalue, exp);
+            FunCallExp call = new FunCallExp(funcName, args, Optional.empty());
+            return new FuncCallAssignCmd(call, assignTo);
+        } else { // Chamada de procedimento: f(...);
+            eat(TokenType.SEMI);
+            return new ProcCallCmd(funcName, args);
         }
     }
 
