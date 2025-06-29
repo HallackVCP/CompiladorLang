@@ -123,6 +123,7 @@ public class Parser {
     private Cmd parseCommand() {
         return switch (currentToken.type()) {
             case IF -> parseIf();
+            case ELSE -> parseElse();
             case PRINT -> parsePrint();
             case RETURN -> parseReturn();
             case ITERATE -> parseIterate();
@@ -154,10 +155,14 @@ public class Parser {
         Cmd thenBranch = parseBlock();
         Cmd elseBranch = null;
         if (currentToken.type() == TokenType.ELSE) {
-            eat(TokenType.ELSE);
-            elseBranch = parseBlock();
+            elseBranch = parseCommand();
         }
         return new IfCmd(condition, thenBranch, elseBranch);
+    }
+
+    private Cmd parseElse(){
+        eat(TokenType.ELSE);
+        return parseBlock();
     }
 
     private IterateCmd parseIterate() {
