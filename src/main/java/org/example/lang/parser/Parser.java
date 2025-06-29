@@ -114,7 +114,7 @@ public class Parser {
             } while (true);
         }
 
-        Cmd body = parseCommand();
+        Cmd body = parseBlock();
         return new FunDecl(name, params, returnTypes, body);
     }
 
@@ -122,7 +122,6 @@ public class Parser {
 
     private Cmd parseCommand() {
         return switch (currentToken.type()) {
-            case LBRACE -> parseBlock();
             case IF -> parseIf();
             case PRINT -> parsePrint();
             case RETURN -> parseReturn();
@@ -146,13 +145,13 @@ public class Parser {
     private IfCmd parseIf() {
         eat(TokenType.IF);
         eat(TokenType.LPAREN);
-        Exp condition = parseExpression();
+        Exp condition = parseExpression(); //TODO: CHECK THIS METHOD
         eat(TokenType.RPAREN);
-        Cmd thenBranch = parseCommand();
+        Cmd thenBranch = parseBlock();
         Cmd elseBranch = null;
         if (currentToken.type() == TokenType.ELSE) {
             eat(TokenType.ELSE);
-            elseBranch = parseCommand();
+            elseBranch = parseBlock();
         }
         return new IfCmd(condition, thenBranch, elseBranch);
     }
@@ -224,7 +223,7 @@ public class Parser {
             }
         } else { // É uma atribuição
             eat(TokenType.ASSIGN);
-            Exp exp = parseExpression();
+            Exp exp = parseExpression();//TODO: CHECK THIS METHOD
             eat(TokenType.SEMI);
             return new AssignCmd(lvalue, exp);
         }
