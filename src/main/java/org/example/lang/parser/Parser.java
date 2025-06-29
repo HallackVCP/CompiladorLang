@@ -169,7 +169,7 @@ public class Parser {
             collection = parseExpression();
         }
         eat(TokenType.RPAREN);
-        Cmd body = parseCommand();
+        Cmd body = parseBlock();
         return new IterateCmd(var, collection, body);
     }
 
