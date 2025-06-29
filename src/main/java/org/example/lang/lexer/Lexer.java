@@ -113,7 +113,7 @@ public class Lexer {
                     column++;
                 }
                 position++;
-            } else if (current == '/' && peek() == '/') { // Comentário de linha `//`
+            } else if (current == '-' && peek() == '-') { // Comentário de linha `--`
                 while (position < input.length() && currentChar() != '\n') {
                     position++;
                 }
