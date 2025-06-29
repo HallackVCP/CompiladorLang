@@ -34,7 +34,7 @@ public class Environment {
                 return;
             }
         }
-        throw new RuntimeException("Erro: Tentativa de atribuir a uma variável não definida '" + name + "'.");
+        scopes.peek().put(name, value);
     }
 
     public boolean isDefined(String name) {
