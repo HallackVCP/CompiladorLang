@@ -309,16 +309,48 @@ public class Parser {
         return new FunCallExp(idName, args, returnIndex);
     }
 
+//    private NewExp parseNewExpression() {
+//        eat(TokenType.NEW);
+//        TypeNode type = parseTypeNode();
+//        Optional<Exp> size = Optional.empty();
+//        if (currentToken.type() == TokenType.LBRACK) {
+//            eat(TokenType.LBRACK);
+//            size = Optional.of(parseExpression());
+//            eat(TokenType.RBRACK);
+//        }
+//        return new NewExp(type, size);
+//    }
     private NewExp parseNewExpression() {
         eat(TokenType.NEW);
-        TypeNode type = parseTypeNode();
-        Optional<Exp> size = Optional.empty();
+        // Primeiro, analisamos apenas o tipo base (ex: Int, Ponto, etc.)
+        TypeNode baseType = parseBaseTypeNode();
+
+        // Em seguida, verificamos se é uma alocação de array com tamanho
         if (currentToken.type() == TokenType.LBRACK) {
             eat(TokenType.LBRACK);
-            size = Optional.of(parseExpression());
+            Optional<Exp> size = Optional.of(parseExpression());
             eat(TokenType.RBRACK);
+
+            // O tipo final é um tipo de array
+            TypeNode arrayType = new ArrayTypeNode(baseType);
+            return new NewExp(arrayType, size);
+        } else {
+            // Se não houver colchetes, é uma alocação de registro (ex: new Ponto)
+            return new NewExp(baseType, Optional.empty());
         }
-        return new NewExp(type, size);
+    }
+
+    // 2. ADICIONE este novo método auxiliar à classe Parser:
+    private BaseTypeNode parseBaseTypeNode() {
+        Token t = currentToken;
+        return switch (t.type()) {
+            case INT_TYPE -> new BaseTypeNode(eat(TokenType.INT_TYPE).lexeme());
+            case BOOL_TYPE -> new BaseTypeNode(eat(TokenType.BOOL_TYPE).lexeme());
+            case CHAR_TYPE -> new BaseTypeNode(eat(TokenType.CHAR_TYPE).lexeme());
+            case FLOAT_TYPE -> new BaseTypeNode(eat(TokenType.FLOAT_TYPE).lexeme());
+            case TYID -> new BaseTypeNode(eat(TokenType.TYID).lexeme());
+            default -> throw new RuntimeException("Nome de tipo base esperado, mas encontrou " + t.lexeme());
+        };
     }
 
     private LValue parseLValue() {

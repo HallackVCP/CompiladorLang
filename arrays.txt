@@ -1,0 +1,17 @@
+main() {
+  // Criação e manipulação de array.
+  a = new Int[4];
+  a[0] = 5;
+  a[1] = 10;
+  a[3] = a[0] + a[1];
+
+  print a[3]; // Imprime 15
+  //print a[2]; // Imprime null (valor padrão)
+
+  // Iteração sobre um array.
+  iterate(elem: a) {
+    if (!(elem == null)) {
+      print elem;
+    }
+  }
+}

@@ -1,5 +1,5 @@
 main () {
-print fat (10) [0];
+print fat (11) [0];
 }
 
 fat ( num :: Int ) : Int {
