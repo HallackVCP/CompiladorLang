@@ -44,56 +44,55 @@ public class Lexer {
         int startCol = column;
 
         if (Character.isLetter(current)) {
-            return identifierOrKeyword();
+            return getIdentifierOrKeywordToken();
         }
         if (Character.isDigit(current) || (current == '.' && Character.isDigit(peek()))) {
-            return number();
+            return getNumberToken();
         }
 
         switch (current) {
-            case '(': return consumeAndReturn(TokenType.LPAREN, 1);
-            case ')': return consumeAndReturn(TokenType.RPAREN, 1);
-            case '{': return consumeAndReturn(TokenType.LBRACE, 1);
-            case '}': return consumeAndReturn(TokenType.RBRACE, 1);
-            case '[': return consumeAndReturn(TokenType.LBRACK, 1);
-            case ']': return consumeAndReturn(TokenType.RBRACK, 1);
-            case ',': return consumeAndReturn(TokenType.COMMA, 1);
-            case ';': return consumeAndReturn(TokenType.SEMI, 1);
-            case '.': return consumeAndReturn(TokenType.DOT, 1);
-            case '+': return consumeAndReturn(TokenType.PLUS, 1);
-            case '-': return consumeAndReturn(TokenType.MINUS, 1);
-            case '*': return consumeAndReturn(TokenType.STAR, 1);
-            case '/': return consumeAndReturn(TokenType.SLASH, 1);
-            case '%': return consumeAndReturn(TokenType.PERCENT, 1);
-            case '>': return consumeAndReturn(TokenType.RETURN_VALUES_CLOSE, 1);
+            case '(': return getSpecialCharacterToken(TokenType.LPAREN, 1);
+            case ')': return getSpecialCharacterToken(TokenType.RPAREN, 1);
+            case '{': return getSpecialCharacterToken(TokenType.LBRACE, 1);
+            case '}': return getSpecialCharacterToken(TokenType.RBRACE, 1);
+            case '[': return getSpecialCharacterToken(TokenType.LBRACK, 1);
+            case ']': return getSpecialCharacterToken(TokenType.RBRACK, 1);
+            case ',': return getSpecialCharacterToken(TokenType.COMMA, 1);
+            case ';': return getSpecialCharacterToken(TokenType.SEMI, 1);
+            case '.': return getSpecialCharacterToken(TokenType.DOT, 1);
+            case '+': return getSpecialCharacterToken(TokenType.PLUS, 1);
+            case '-': return getSpecialCharacterToken(TokenType.MINUS, 1);
+            case '*': return getSpecialCharacterToken(TokenType.STAR, 1);
+            case '/': return getSpecialCharacterToken(TokenType.SLASH, 1);
+            case '%': return getSpecialCharacterToken(TokenType.PERCENT, 1);
+            case '>': return getSpecialCharacterToken(TokenType.RETURN_VALUES_CLOSE, 1);
 
-            case '\'': return charLiteral();
+            case '\'': return getCharToken();
 
             case ':':
                 if (peek() == ':') {
-                    return consumeAndReturn(TokenType.DOUBLE_COLON, 2); // Gera '::' como um token único e distinto
+                    return getSpecialCharacterToken(TokenType.DOUBLE_COLON, 2); // Gera '::' como um token único e distinto
                 }
-                return consumeAndReturn(TokenType.COLON, 1); // Gera ':' normal
+                return getSpecialCharacterToken(TokenType.COLON, 1); // Gera ':' normal
 
             case '<':
-                // O parser diferencia `divmod(..)<...>` de `a < b` pelo contexto.
-                return consumeAndReturn(TokenType.LT, 1);
+                return getSpecialCharacterToken(TokenType.LT, 1);
 
             case '=':
                 if (peek() == '=') {
-                    return consumeAndReturn(TokenType.EQ_EQ, 2);
+                    return getSpecialCharacterToken(TokenType.EQ_EQ, 2);
                 }
-                return consumeAndReturn(TokenType.ASSIGN, 1);
+                return getSpecialCharacterToken(TokenType.ASSIGN, 1);
 
             case '!':
                 if (peek() == '=') {
-                    return consumeAndReturn(TokenType.NOT_EQ, 2);
+                    return getSpecialCharacterToken(TokenType.NOT_EQ, 2);
                 }
-                return consumeAndReturn(TokenType.NOT, 1);
+                return getSpecialCharacterToken(TokenType.NOT, 1);
 
             case '&':
                 if (peek() == '&') {
-                    return consumeAndReturn(TokenType.AND, 2);
+                    return getSpecialCharacterToken(TokenType.AND, 2);
                 }
                 break;
         }
@@ -130,13 +129,13 @@ public class Lexer {
         }
     }
 
-    private Token identifierOrKeyword() {
+    private Token getIdentifierOrKeywordToken() {
         int start = position;
         int startCol = column;
-        while (position < input.length() && (Character.isLetterOrDigit(currentChar()) || currentChar() == '_')) {
+        while (position < input.length() && (Character.isLetterOrDigit(currentChar()) || currentChar() == '_')) { //Encontra posição final da palavra
             advance();
         }
-        String lexeme = input.substring(start, position);
+        String lexeme = input.substring(start, position); //Obtém palavra
         TokenType type = KEYWORDS.getOrDefault(lexeme, TokenType.ID);
 
         if (type == TokenType.ID) {
@@ -149,7 +148,7 @@ public class Lexer {
         return new Token(type, lexeme, line, startCol);
     }
 
-    private Token number() {
+    private Token getNumberToken() {
         int start = position;
         int startCol = column;
         boolean isFloat = false;
@@ -167,7 +166,7 @@ public class Lexer {
         return new Token(isFloat ? TokenType.FLOAT : TokenType.INT, lexeme, line, startCol);
     }
 
-    private Token charLiteral() {
+    private Token getCharToken() {
         int startCol = column;
         eat('\'');
         char value = currentChar();
@@ -211,7 +210,7 @@ public class Lexer {
         }
     }
 
-    private Token consumeAndReturn(TokenType type, int length) {
+    private Token getSpecialCharacterToken(TokenType type, int length) {
         String lexeme = input.substring(position, position + length);
         int startCol = column;
         for (int i = 0; i < length; i++) advance();

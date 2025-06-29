@@ -31,7 +31,7 @@ public class Parser {
         this.currentToken = lexer.nextToken();
     }
 
-    private Token eat(TokenType expected) {
+    private Token eat(TokenType expected) { //Verifica se o token atual é o esperado e chama nextToken() para atualizar o token
         Token t = currentToken;
         if (t.type() != expected) {
             throw new RuntimeException("Erro de sintaxe: esperado " + expected + ", mas encontrou " + t.type() + " ('" + t.lexeme() + "') na linha " + t.line());
@@ -94,9 +94,8 @@ public class Parser {
         eat(TokenType.LPAREN);
         List<FunDecl.Param> params = new ArrayList<>();
         if (currentToken.type() != TokenType.RPAREN) {
-            do {
+            do { //Lê os parâmetros da função
                 String paramName = eat(TokenType.ID).lexeme();
-                // Substitua as duas linhas 'eat(TokenType.COLON)' por esta única linha:
                 eat(TokenType.DOUBLE_COLON);
                 String paramType = parseTypeNameAsString();
                 params.add(new FunDecl.Param(paramName, paramType));
@@ -107,6 +106,7 @@ public class Parser {
 
         List<String> returnTypes = new ArrayList<>();
         if (currentToken.type() == TokenType.COLON) {
+            //Obtém os tipos de retorno da função
             eat(TokenType.COLON);
             do {
                 returnTypes.add(parseTypeNameAsString());
