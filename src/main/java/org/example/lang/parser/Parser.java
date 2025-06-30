@@ -40,10 +40,6 @@ public class Parser {
         return t;
     }
 
-    private boolean isBinaryOperator(TokenType type) {
-        return PRECEDENCE.containsKey(type);
-    }
-
     public Program parseProgram() {
         List<Decl> decls = new ArrayList<>();
         while (currentToken.type() != TokenType.EOF) {
@@ -251,7 +247,7 @@ public class Parser {
             left = parsePrimaryExpression();
         }
 
-        while (isBinaryOperator(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
+        while (PRECEDENCE.containsKey(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
             Token opToken = eat(currentToken.type());
             int currentPrecedence = PRECEDENCE.get(opToken.type());
             // Associatividade à direita (não temos, mas seria `currentPrecedence`)
