@@ -1,0 +1,5 @@
+{- Testa comandos 'if-else' e
+ operadores lógicos/relacionais. -}
+main() {
+  x = ( 10 + 20 ) * 30;
+}
