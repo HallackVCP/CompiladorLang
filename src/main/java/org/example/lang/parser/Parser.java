@@ -13,18 +13,33 @@ import java.util.*;
 public class Parser {
     private Lexer lexer;
     private Token currentToken;
-    private static final Map<TokenType, Integer> PRECEDENCE = new HashMap<>();
+//    private static final Map<TokenType, Integer> PRECEDENCE = new HashMap<>();
+    private static final Map<TokenType, OpInfo> OPERATOR_INFO = new HashMap<>();
 
     static {
-        PRECEDENCE.put(TokenType.AND, 1);
-        PRECEDENCE.put(TokenType.EQ_EQ, 2);
-        PRECEDENCE.put(TokenType.NOT_EQ, 2);
-        PRECEDENCE.put(TokenType.LT, 3);
-        PRECEDENCE.put(TokenType.PLUS, 4);
-        PRECEDENCE.put(TokenType.MINUS, 4);
-        PRECEDENCE.put(TokenType.STAR, 5);
-        PRECEDENCE.put(TokenType.SLASH, 5);
-        PRECEDENCE.put(TokenType.PERCENT, 5);
+//        PRECEDENCE.put(TokenType.AND, 1);
+//        PRECEDENCE.put(TokenType.EQ_EQ, 2);
+//        PRECEDENCE.put(TokenType.NOT_EQ, 2);
+//        PRECEDENCE.put(TokenType.LT, 3);
+//        PRECEDENCE.put(TokenType.PLUS, 4);
+//        PRECEDENCE.put(TokenType.MINUS, 4);
+//        PRECEDENCE.put(TokenType.STAR, 5);
+//        PRECEDENCE.put(TokenType.SLASH, 5);
+//        PRECEDENCE.put(TokenType.PERCENT, 5);
+        // Nível 1: Conjunção (esquerda)
+        OPERATOR_INFO.put(TokenType.AND, new OpInfo(1, Associativity.LEFT));
+        // Nível 2: Igualdade (esquerda)
+        OPERATOR_INFO.put(TokenType.EQ_EQ, new OpInfo(2, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.NOT_EQ, new OpInfo(2, Associativity.LEFT));
+        // Nível 3: Relacional (não associativo)
+        OPERATOR_INFO.put(TokenType.LT, new OpInfo(3, Associativity.NON_ASSOCIATIVE));
+        // Nível 4: Adição/Subtração (esquerda)
+        OPERATOR_INFO.put(TokenType.PLUS, new OpInfo(4, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.MINUS, new OpInfo(4, Associativity.LEFT));
+        // Nível 5: Multiplicação/Divisão (esquerda)
+        OPERATOR_INFO.put(TokenType.STAR, new OpInfo(5, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.SLASH, new OpInfo(5, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.PERCENT, new OpInfo(5, Associativity.LEFT));
     }
 
     public Parser(String input) {
@@ -177,7 +192,7 @@ public class Parser {
             collection = parseExpression();
         }
         eat(TokenType.RPAREN);
-        Cmd body = parseBlock();
+        Cmd body = parseCommand();
         return new IterateCmd(var, collection, body);
     }
 
@@ -240,6 +255,25 @@ public class Parser {
 
     private Exp parseExpression() { return parseExpression(0); }
 
+//    private Exp parseExpression(int minPrecedence) {
+//        Exp left;
+//        if (currentToken.type() == TokenType.NOT || currentToken.type() == TokenType.MINUS) {
+//            Token op = eat(currentToken.type());
+//            Exp exp = parseExpression(6); // Precedência de unários
+//            left = new UnaryExp(op.lexeme(), exp);
+//        } else {
+//            left = parsePrimaryExpression();
+//        }
+//
+//        while (PRECEDENCE.containsKey(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
+//            Token opToken = eat(currentToken.type());
+//            int currentPrecedence = PRECEDENCE.get(opToken.type());
+//            // Associatividade à direita (não temos, mas seria `currentPrecedence`)
+//            Exp right = parseExpression(currentPrecedence + 1);
+//            left = new BinOpExp(left, opToken.lexeme(), right);
+//        }
+//        return left;
+//    }
     private Exp parseExpression(int minPrecedence) {
         Exp left;
         if (currentToken.type() == TokenType.NOT || currentToken.type() == TokenType.MINUS) {
@@ -250,14 +284,37 @@ public class Parser {
             left = parsePrimaryExpression();
         }
 
-        while (PRECEDENCE.containsKey(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
+        while (isBinaryOperator(currentToken.type()) && OPERATOR_INFO.get(currentToken.type()).precedence() >= minPrecedence) {
             Token opToken = eat(currentToken.type());
-            int currentPrecedence = PRECEDENCE.get(opToken.type());
-            // Associatividade à direita (não temos, mas seria `currentPrecedence`)
-            Exp right = parseExpression(currentPrecedence + 1);
+            OpInfo opInfo = OPERATOR_INFO.get(opToken.type());
+            int currentPrecedence = opInfo.precedence();
+
+            // Para associatividade à DIREITA, a recursão usa a MESMA precedência.
+            // Para associatividade à ESQUERDA e NÃO-ASSOCIATIVA, a precedência da recursão
+            // aumenta para evitar que operadores de mesma precedência sejam agrupados à direita.
+            int nextMinPrecedence = (opInfo.assoc() == Associativity.RIGHT)
+                    ? currentPrecedence
+                    : currentPrecedence + 1;
+
+            Exp right = parseExpression(nextMinPrecedence);
+
+            // Agora, construímos o nó da árvore para a operação atual.
             left = new BinOpExp(left, opToken.lexeme(), right);
+
+            // VERIFICAÇÃO FINAL PARA NÃO-ASSOCIATIVIDADE
+            // Esta verificação acontece DEPOIS de construir o nó `left`, quando o `currentToken`
+            // já é o próximo operador na fila, permitindo a comparação correta.
+            if (opInfo.assoc() == Associativity.NON_ASSOCIATIVE) {
+                if (isBinaryOperator(currentToken.type()) && OPERATOR_INFO.get(currentToken.type()).precedence() == currentPrecedence) {
+                    throw new ParserException("Erro de sintaxe: O operador '" + opToken.lexeme() + "' não é associativo e não pode ser encadeado.");
+                }
+            }
         }
+
         return left;
+    }
+    private boolean isBinaryOperator(TokenType type) {
+        return OPERATOR_INFO.containsKey(type);
     }
 
     private Exp parsePrimaryExpression() {
