@@ -1,5 +1,6 @@
 package org.example.lang.parser;
 
+import org.example.lang.Exception.ParserException;
 import org.example.lang.ast.*;
 import org.example.lang.ast.cmd.*;
 import org.example.lang.ast.decl.*;
@@ -34,7 +35,7 @@ public class Parser {
     private Token eat(TokenType expected) { //Verifica se o token atual é o esperado e chama nextToken() para atualizar o token
         Token t = currentToken;
         if (t.type() != expected) {
-            throw new RuntimeException("Erro de sintaxe: esperado " + expected + ", mas encontrou " + t.type() + " ('" + t.lexeme() + "') na linha " + t.line());
+            throw new ParserException("Erro de sintaxe: esperado " + expected + ", mas encontrou " + t.type() + " ('" + t.lexeme() + "') na linha " + t.line());
         }
         currentToken = lexer.nextToken();
         return t;
@@ -118,6 +119,7 @@ public class Parser {
 
     private Cmd parseCommand() {
         return switch (currentToken.type()) {
+            case LBRACE -> parseBlock();
             case IF -> parseIf();
             case ELSE -> parseElse();
             case PRINT -> parsePrint();
@@ -129,7 +131,7 @@ public class Parser {
                 if (lvalue instanceof VarAccessExp && currentToken.type() == TokenType.LPAREN) yield parseCall(lvalue);
                 else yield  parseAssignment(lvalue);
             }
-            default -> throw new RuntimeException("Comando inválido '" + currentToken.lexeme() + "' na linha " + currentToken.line());
+            default -> throw new ParserException("Comando inválido '" + currentToken.lexeme() + "' na linha " + currentToken.line());
         };
     }
 
@@ -148,9 +150,10 @@ public class Parser {
         eat(TokenType.LPAREN);
         Exp condition = parseExpression(); //TODO: CHECK THIS METHOD
         eat(TokenType.RPAREN);
-        Cmd thenBranch = parseBlock();
+        Cmd thenBranch = parseCommand();
         Cmd elseBranch = null;
         if (currentToken.type() == TokenType.ELSE) {
+            eat(TokenType.ELSE);
             elseBranch = parseCommand();
         }
         return new IfCmd(condition, thenBranch, elseBranch);
@@ -294,7 +297,7 @@ public class Parser {
                     return parseLValue();
                 }
             default:
-                throw new RuntimeException("Expressão primária inesperada: " + token.lexeme() + " na linha " + token.line());
+                throw new ParserException("Expressão primária inesperada: " + token.lexeme() + " na linha " + token.line());
         }
     }
 
@@ -323,28 +326,56 @@ public class Parser {
 //        }
 //        return new NewExp(type, size);
 //    }
+//    private NewExp parseNewExpression() {
+//        eat(TokenType.NEW);
+//        // Primeiro, analisamos apenas o tipo base (ex: Int, Ponto, etc.)
+//        TypeNode baseType = parseBaseTypeNode();
+//        //TypeNode baseType = parseTypeNode();
+//
+//        // Em seguida, verificamos se é uma alocação de array com tamanho
+//        if (currentToken.type() == TokenType.LBRACK) {
+//            eat(TokenType.LBRACK);
+//            Optional<Exp> size = Optional.of(parseExpression());
+//            eat(TokenType.RBRACK);
+//
+//            // O tipo final é um tipo de array
+//            TypeNode arrayType = new ArrayTypeNode(baseType);
+//            return new NewExp(arrayType, size);
+//        } else {
+//            // Se não houver colchetes, é uma alocação de registro (ex: new Ponto)
+//            return new NewExp(baseType, Optional.empty());
+//        }
+//    }
     private NewExp parseNewExpression() {
         eat(TokenType.NEW);
-        // Primeiro, analisamos apenas o tipo base (ex: Int, Ponto, etc.)
-        TypeNode baseType = parseBaseTypeNode();
-        //TypeNode baseType = parseTypeNode();
 
-        // Em seguida, verificamos se é uma alocação de array com tamanho
+        // 1. Primeiro, analisamos o tipo base (ex: Char, Int, Ponto).
+        TypeNode type = parseBaseTypeNode();
+
+        // 2. Em seguida, contamos e consumimos as dimensões de tipo vazias ('[]').
+        // Para `new Char[][][nl]`, isso irá consumir os dois primeiros pares de colchetes.
+        while (currentToken.type() == TokenType.LBRACK && peek().type() == TokenType.RBRACK) {
+            eat(TokenType.LBRACK);
+            eat(TokenType.RBRACK);
+            type = new ArrayTypeNode(type);
+        }
+
+        // 3. Finalmente, verificamos a dimensão de alocação, que contém uma expressão de tamanho.
+        // Para `new Char[][][nl]`, esta é a parte `[nl]`.
         if (currentToken.type() == TokenType.LBRACK) {
             eat(TokenType.LBRACK);
             Optional<Exp> size = Optional.of(parseExpression());
             eat(TokenType.RBRACK);
 
-            // O tipo final é um tipo de array
-            TypeNode arrayType = new ArrayTypeNode(baseType);
-            return new NewExp(arrayType, size);
+            // O tipo final do objeto criado é um array do tipo que acabamos de analisar.
+            TypeNode finalType = new ArrayTypeNode(type);
+            return new NewExp(finalType, size);
         } else {
-            // Se não houver colchetes, é uma alocação de registro (ex: new Ponto)
-            return new NewExp(baseType, Optional.empty());
+            // Se não houver colchetes de tamanho, é uma alocação de registro (ex: new Ponto).
+            return new NewExp(type, Optional.empty());
         }
     }
 
-    // 2. ADICIONE este novo método auxiliar à classe Parser:
     private BaseTypeNode parseBaseTypeNode() {
         Token t = currentToken;
         return switch (t.type()) {
@@ -353,7 +384,7 @@ public class Parser {
             case CHAR_TYPE -> new BaseTypeNode(eat(TokenType.CHAR_TYPE).lexeme());
             case FLOAT_TYPE -> new BaseTypeNode(eat(TokenType.FLOAT_TYPE).lexeme());
             case TYID -> new BaseTypeNode(eat(TokenType.TYID).lexeme());
-            default -> throw new RuntimeException("Nome de tipo base esperado, mas encontrou " + t.lexeme());
+            default -> throw new ParserException("Nome de tipo base esperado, mas encontrou " + t.lexeme());
         };
     }
 
@@ -374,7 +405,7 @@ public class Parser {
             }
         }
         if (!(base instanceof LValue)) {
-            throw new RuntimeException("Expressão inválida para o lado esquerdo de uma atribuição.");
+            throw new ParserException("Expressão inválida para o lado esquerdo de uma atribuição.");
         }
         return (LValue)base;
     }
@@ -398,7 +429,7 @@ public class Parser {
             case CHAR_TYPE -> new BaseTypeNode(eat(TokenType.CHAR_TYPE).lexeme());
             case FLOAT_TYPE -> new BaseTypeNode(eat(TokenType.FLOAT_TYPE).lexeme());
             case TYID -> new BaseTypeNode(eat(TokenType.TYID).lexeme());
-            default -> throw new RuntimeException("Nome de tipo base esperado.");
+            default -> throw new ParserException("Nome de tipo base esperado.");
         };
 
         while (currentToken.type() == TokenType.LBRACK) {

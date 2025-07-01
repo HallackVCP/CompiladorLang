@@ -1,0 +1,25 @@
+-- Exemplo de uso da sintaxe corrigida para criar uma matriz.
+main() {
+  nl = 3; -- número de linhas
+  nc = 3; -- número de colunas
+
+  -- Cria uma matriz (array de array de Char) 3x3.
+  -- A expressão `new Char[][]` define o tipo do array que conterá as linhas.
+  -- O `[nl]` aloca espaço para 3 linhas.
+  board = new Char[][][nl];
+
+  -- Itera sobre as linhas para alocar as colunas.
+  iterate(i: nl) {
+    board[i] = new Char[nc];
+  }
+
+  -- Preenche algumas posições do tabuleiro.
+  board[0][0] = 'X';
+  board[1][1] = 'O';
+  board[0][2] = 'X';
+  board[2][0] = 'O';
+
+  -- Imprime uma posição para verificar.
+  print board[1][1];
+  print board[2][0];
+}

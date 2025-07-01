@@ -298,6 +298,16 @@ public class Interpreter implements Visitor<Value> {
                 default -> throw new RuntimeException("Operador binário '" + e.op() + "' inválido para números.");
             };
         }
+        else if (left instanceof CharValue && right instanceof CharValue) {
+            char l = ((CharValue) left).value();
+            char r = ((CharValue) right).value();
+            return switch (e.op()) {
+                case "==" -> new BoolValue(l == r);
+                case "!=" -> new BoolValue(l != r);
+                case "<" -> new BoolValue(l < r); // Compara os valores ASCII/Unicode
+                default -> throw new RuntimeException("Operador binário '" + e.op() + "' inválido para caracteres.");
+            };
+        }
         if (left instanceof BoolValue && right instanceof BoolValue) {
             boolean l = ((BoolValue) left).value();
             boolean r = ((BoolValue) right).value();

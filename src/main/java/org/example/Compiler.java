@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.lang.Exception.ParserException;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
@@ -38,7 +39,7 @@ public class Compiler {
 
         } catch (IOException e) {
             System.err.println("Erro ao ler o arquivo: " + filePath);
-        } catch (RuntimeException e) {
+        } catch (ParserException e) {
             // O Parser e o Interpretador lançam RuntimeException em caso de erro.
             System.err.println(e.getMessage());
             // Para a análise sintática, a saída em caso de erro deve ser "reject"

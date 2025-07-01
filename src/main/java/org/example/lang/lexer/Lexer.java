@@ -1,5 +1,7 @@
 package org.example.lang.lexer;
 
+import org.example.lang.Exception.ParserException;
+
 import java.util.Map;
 import java.util.HashMap;
 
@@ -142,7 +144,7 @@ public class Lexer {
             if (Character.isUpperCase(lexeme.charAt(0))) {
                 type = TokenType.TYID;
             } else if (!Character.isLowerCase(lexeme.charAt(0))) {
-                throw new RuntimeException("Erro léxico: Identificador '" + lexeme + "' deve começar com letra na linha " + line);
+                throw new ParserException("Erro léxico: Identificador '" + lexeme + "' deve começar com letra na linha " + line);
             }
         }
         return new Token(type, lexeme, line, startCol);
@@ -166,30 +168,82 @@ public class Lexer {
         return new Token(isFloat ? TokenType.FLOAT : TokenType.INT, lexeme, line, startCol);
     }
 
+    private char peekNext() {
+        if (position + 2 >= input.length()) return '\0';
+        return input.charAt(position + 2);
+    }
+
+    // Substitua o método charLiteral inteiro por esta nova versão
     private Token getCharToken() {
         int startCol = column;
-        eat('\'');
-        char value = currentChar();
-        if (value == '\\') { // Caractere de escape
+        eat('\''); // Consome a aspa inicial
+
+        char value;
+        if (currentChar() == '\\') { // Sequência de escape
+            advance(); // Consome a barra invertida '\'
+
+            if (Character.isDigit(currentChar())) { // Verifica se é um código ASCII
+                if (position + 2 >= input.length()) {
+                    throw new ParserException("Código ASCII incompleto na linha " + line);
+                }
+
+                // Lê os três dígitos
+                String asciiCodeStr = "" + currentChar() + peek() + peekNext();
+
+                // Avança o cursor para depois dos três dígitos
+                advance(); advance(); advance();
+
+                try {
+                    int asciiCode = Integer.parseInt(asciiCodeStr);
+                    value = (char) asciiCode;
+                } catch (NumberFormatException e) {
+                    throw new ParserException("Código ASCII inválido: " + asciiCodeStr);
+                }
+
+            } else { // Verifica outros escapes conhecidos
+                value = switch (currentChar()) {
+                    case 'n' -> '\n';
+                    case 't' -> '\t';
+                    case '\'' -> '\'';
+                    case '\\' -> '\\';
+                    case 'b' -> '\b'; // Adicionando backspace, 'r' para carriage return
+                    case 'r' -> '\r';
+                    default -> throw new ParserException("Caractere de escape inválido: \\" + currentChar());
+                };
+                advance(); // Consome o caractere de escape (n, t, etc.)
+            }
+        } else { // Caractere normal
+            value = currentChar();
             advance();
-            value = switch (currentChar()) {
-                case 'n' -> '\n';
-                case 't' -> '\t';
-                case '\'' -> '\'';
-                case '\\' -> '\\';
-                default -> throw new RuntimeException("Caractere de escape inválido: \\" + currentChar());
-            };
         }
-        advance();
-        eat('\'');
+
+        eat('\''); // Consome a aspa final
         return new Token(TokenType.CHAR, String.valueOf(value), line, startCol);
     }
+//    private Token getCharToken() {
+//        int startCol = column;
+//        eat('\'');
+//        char value = currentChar();
+//        if (value == '\\') { // Caractere de escape
+//            advance();
+//            value = switch (currentChar()) {
+//                case 'n' -> '\n';
+//                case 't' -> '\t';
+//                case '\'' -> '\'';
+//                case '\\' -> '\\';
+//                default -> throw new ParserException("Caractere de escape inválido: \\" + currentChar());
+//            };
+//        }
+//        advance();
+//        eat('\'');
+//        return new Token(TokenType.CHAR, String.valueOf(value), line, startCol);
+//    }
 
     private void eat(char c) {
         if (position < input.length() && currentChar() == c) {
             advance();
         } else {
-            throw new RuntimeException("Erro léxico: esperado '" + c + "' na linha " + line);
+            throw new ParserException("Erro léxico: esperado '" + c + "' na linha " + line);
         }
     }
 
