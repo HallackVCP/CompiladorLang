@@ -1,6 +1,6 @@
 package org.example.lang.lexer;
 
-import org.example.lang.Exception.ParserException;
+import org.example.lang.Exception.LexerException;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -144,7 +144,7 @@ public class Lexer {
             if (Character.isUpperCase(lexeme.charAt(0))) {
                 type = TokenType.TYID;
             } else if (!Character.isLowerCase(lexeme.charAt(0))) {
-                throw new ParserException("Erro léxico: Identificador '" + lexeme + "' deve começar com letra na linha " + line);
+                throw new LexerException("Erro léxico: Identificador '" + lexeme + "' deve começar com letra na linha " + line);
             }
         }
         return new Token(type, lexeme, line, startCol);
@@ -184,7 +184,7 @@ public class Lexer {
 
             if (Character.isDigit(currentChar())) { // Verifica se é um código ASCII
                 if (position + 2 >= input.length()) {
-                    throw new ParserException("Código ASCII incompleto na linha " + line);
+                    throw new LexerException("Código ASCII incompleto na linha " + line);
                 }
 
                 // Lê os três dígitos
@@ -197,7 +197,7 @@ public class Lexer {
                     int asciiCode = Integer.parseInt(asciiCodeStr);
                     value = (char) asciiCode;
                 } catch (NumberFormatException e) {
-                    throw new ParserException("Código ASCII inválido: " + asciiCodeStr);
+                    throw new LexerException("Código ASCII inválido: " + asciiCodeStr);
                 }
 
             } else { // Verifica outros escapes conhecidos
@@ -208,7 +208,7 @@ public class Lexer {
                     case '\\' -> '\\';
                     case 'b' -> '\b'; // Adicionando backspace, 'r' para carriage return
                     case 'r' -> '\r';
-                    default -> throw new ParserException("Caractere de escape inválido: \\" + currentChar());
+                    default -> throw new LexerException("Caractere de escape inválido: \\" + currentChar());
                 };
                 advance(); // Consome o caractere de escape (n, t, etc.)
             }
@@ -231,7 +231,7 @@ public class Lexer {
 //                case 't' -> '\t';
 //                case '\'' -> '\'';
 //                case '\\' -> '\\';
-//                default -> throw new ParserException("Caractere de escape inválido: \\" + currentChar());
+//                default -> throw new LexerException("Caractere de escape inválido: \\" + currentChar());
 //            };
 //        }
 //        advance();
@@ -243,7 +243,7 @@ public class Lexer {
         if (position < input.length() && currentChar() == c) {
             advance();
         } else {
-            throw new ParserException("Erro léxico: esperado '" + c + "' na linha " + line);
+            throw new LexerException("Erro léxico: esperado '" + c + "' na linha " + line);
         }
     }
 

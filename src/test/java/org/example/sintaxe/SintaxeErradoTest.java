@@ -1,6 +1,6 @@
 package org.example.sintaxe;
 
-import org.example.lang.Exception.ParserException;
+import org.example.lang.Exception.AnalysisException;
 import org.example.lang.ast.Program;
 import org.example.lang.parser.Parser;
 import org.junit.jupiter.api.Test;
@@ -20,21 +20,21 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrADD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
     @Test
     public void testSintaxeErradoattrAND() throws IOException {
         String filePath = "src/test/resources/sintaxe/errado/attrAND.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
     @Test
     public void testSintaxeErradoAttrCHAR() throws IOException {
         String filePath = "src/test/resources/sintaxe/errado/attrCHAR.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrCHARESCAPE1.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -50,7 +50,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrCHARESCAPE2.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -58,7 +58,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrCHARESCAPE3.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -66,7 +66,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrDIV.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -82,7 +82,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrEQ.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrFloat.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrLT.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -106,7 +106,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrMOD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrMULT.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -122,7 +122,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrNEQ.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -130,7 +130,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrNULL.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -138,7 +138,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrSUB.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -146,7 +146,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/attrTRUE.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -154,7 +154,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/chainIf.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -162,7 +162,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/data.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -171,7 +171,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/function.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -179,7 +179,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/function_call.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -187,7 +187,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/function_call_expr.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -195,7 +195,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/function_call_ret.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/function_call_ret_use.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -211,7 +211,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/function_call_ret_use2.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -219,7 +219,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/if_oneCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -227,7 +227,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/ifelse_oneCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -235,7 +235,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/instanciate.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -243,7 +243,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/iterate_oneCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -251,7 +251,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/iterateCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -259,7 +259,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/nonAssoc.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -268,7 +268,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/parameter.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -276,7 +276,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/printCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
     private void simulateInput(String simulatedInput) {
         InputStream originalIn = System.in;
@@ -290,7 +290,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/readCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
     @Test
@@ -298,7 +298,7 @@ public class SintaxeErradoTest {
         String filePath = "src/test/resources/sintaxe/errado/returnCMD.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
-        assertThrows(ParserException.class, () -> parser.parseProgram());
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
 
 }

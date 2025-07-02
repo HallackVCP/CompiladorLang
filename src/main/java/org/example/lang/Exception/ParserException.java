@@ -1,6 +1,6 @@
 package org.example.lang.Exception;
 
-public class ParserException extends RuntimeException {
+public class ParserException extends AnalysisException {
 
     public ParserException(String message) {
         super(message);
