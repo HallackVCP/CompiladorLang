@@ -1,10 +1,10 @@
-// Testa múltiplos valores de retorno e atribuição.
+-- Testa múltiplos valores de retorno e atribuição.
 main() {
   q = 0;
   r = 0;
   divmod(17, 5)<q, r>;
-  print q; // Quociente
-  print r; // Resto
+  print q; -- Quociente
+  print r; -- Resto
 }
 
 divmod(num :: Int, div :: Int) : Int, Int {

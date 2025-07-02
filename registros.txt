@@ -1,4 +1,4 @@
-// Declaração de um tipo registro.
+-- Declaração de um tipo registro.
 data Ponto {
   x :: Int;
   y :: Int;
@@ -7,7 +7,7 @@ data Ponto {
 main() {
   p1 = new Ponto;
   p1.x = 10;
-  p1.y = p1.x * -2; // Testa operador unário '-'
+  p1.y = p1.x * -2; -- Testa operador unário '-'
 
   print p1.x;
   print p1.y;

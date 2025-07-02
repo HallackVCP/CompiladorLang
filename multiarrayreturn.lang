@@ -1,41 +1,41 @@
-// Função principal que testa o retorno de múltiplos vetores.
+-- Função principal que testa o retorno de múltiplos vetores.
 main() {
-  // A linguagem lang usa declaração implícita na primeira atribuição.
-  // Para a atribuição de múltiplos retornos, as variáveis precisam existir.
-  // Uma forma de garantir isso é inicializá-las com null.
+  -- A linguagem lang usa declaração implícita na primeira atribuição.
+  -- Para a atribuição de múltiplos retornos, as variáveis precisam existir.
+  -- Uma forma de garantir isso é inicializá-las com null.
   vetorA = null;
   vetorB = null;
 
-  // Chama a função e atribui os dois vetores retornados usando a sintaxe especial. 
+  -- Chama a função e atribui os dois vetores retornados usando a sintaxe especial. 
   geraVetores()<vetorA, vetorB>;
 
-  // Imprime elementos para verificar se os vetores foram recebidos corretamente.
-  print 1000; // Separador
-  print vetorA[0]; // Saída esperada: 10
-  print vetorA[2]; // Saída esperada: 30
+  -- Imprime elementos para verificar se os vetores foram recebidos corretamente.
+  print 1000; -- Separador
+  print vetorA[0]; -- Saída esperada: 10
+  print vetorA[2]; -- Saída esperada: 30
 
-  print 2000; // Separador
-  print vetorB[1]; // Saída esperada: 99
+  print 2000; -- Separador
+  print vetorB[1]; -- Saída esperada: 99
   
-  // Testa uma operação com elementos de ambos os vetores.
+  -- Testa uma operação com elementos de ambos os vetores.
   soma = vetorA[1] + vetorB[0];
-  print soma;      // Saída esperada: 20 + 98 = 118
+  print soma;      -- Saída esperada: 20 + 98 = 118
 }
 
-// Função que cria e retorna dois vetores de inteiros.
-// A assinatura indica que ela retorna dois valores, ambos do tipo Int[]. 
+-- Função que cria e retorna dois vetores de inteiros.
+-- A assinatura indica que ela retorna dois valores, ambos do tipo Int[]. 
 geraVetores() : Int[], Int[] {
-  // Cria o primeiro vetor usando a expressão 'new'. 
+  -- Cria o primeiro vetor usando a expressão 'new'. 
   v1 = new Int[3];
   v1[0] = 10;
   v1[1] = 20;
   v1[2] = 30;
 
-  // Cria o segundo vetor.
+  -- Cria o segundo vetor.
   v2 = new Int[2];
   v2[0] = 98;
   v2[1] = 99;
 
-  // Retorna os dois vetores, separados por vírgula. 
+  -- Retorna os dois vetores, separados por vírgula. 
   return v1, v2;
 }

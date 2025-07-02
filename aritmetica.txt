@@ -1,5 +1,5 @@
-// Testa operadores aritméticos e precedência[cite: 302, 312].
+-- Testa operadores aritméticos e precedência
 main() {
-  print 10 + 5 * 2;   // Deve imprimir 20
-  print (10 + 5) * 2; // Deve imprimir 30
+  print 10 + 5 * 2;   -- Deve imprimir 20
+  print (10 + 5) * 2; -- Deve imprimir 30
 }
