@@ -1,5 +1,6 @@
 package org.example.lang.parser;
 
+import org.example.lang.Exception.ParserException;
 import org.example.lang.ast.*;
 import org.example.lang.ast.cmd.*;
 import org.example.lang.ast.decl.*;
@@ -12,18 +13,33 @@ import java.util.*;
 public class Parser {
     private Lexer lexer;
     private Token currentToken;
-    private static final Map<TokenType, Integer> PRECEDENCE = new HashMap<>();
+//    private static final Map<TokenType, Integer> PRECEDENCE = new HashMap<>();
+    private static final Map<TokenType, OpInfo> OPERATOR_INFO = new HashMap<>();
 
     static {
-        PRECEDENCE.put(TokenType.AND, 1);
-        PRECEDENCE.put(TokenType.EQ_EQ, 2);
-        PRECEDENCE.put(TokenType.NOT_EQ, 2);
-        PRECEDENCE.put(TokenType.LT, 3);
-        PRECEDENCE.put(TokenType.PLUS, 4);
-        PRECEDENCE.put(TokenType.MINUS, 4);
-        PRECEDENCE.put(TokenType.STAR, 5);
-        PRECEDENCE.put(TokenType.SLASH, 5);
-        PRECEDENCE.put(TokenType.PERCENT, 5);
+//        PRECEDENCE.put(TokenType.AND, 1);
+//        PRECEDENCE.put(TokenType.EQ_EQ, 2);
+//        PRECEDENCE.put(TokenType.NOT_EQ, 2);
+//        PRECEDENCE.put(TokenType.LT, 3);
+//        PRECEDENCE.put(TokenType.PLUS, 4);
+//        PRECEDENCE.put(TokenType.MINUS, 4);
+//        PRECEDENCE.put(TokenType.STAR, 5);
+//        PRECEDENCE.put(TokenType.SLASH, 5);
+//        PRECEDENCE.put(TokenType.PERCENT, 5);
+        // Nível 1: Conjunção (esquerda)
+        OPERATOR_INFO.put(TokenType.AND, new OpInfo(1, Associativity.LEFT));
+        // Nível 2: Igualdade (esquerda)
+        OPERATOR_INFO.put(TokenType.EQ_EQ, new OpInfo(2, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.NOT_EQ, new OpInfo(2, Associativity.LEFT));
+        // Nível 3: Relacional (não associativo)
+        OPERATOR_INFO.put(TokenType.LT, new OpInfo(3, Associativity.NON_ASSOCIATIVE));
+        // Nível 4: Adição/Subtração (esquerda)
+        OPERATOR_INFO.put(TokenType.PLUS, new OpInfo(4, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.MINUS, new OpInfo(4, Associativity.LEFT));
+        // Nível 5: Multiplicação/Divisão (esquerda)
+        OPERATOR_INFO.put(TokenType.STAR, new OpInfo(5, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.SLASH, new OpInfo(5, Associativity.LEFT));
+        OPERATOR_INFO.put(TokenType.PERCENT, new OpInfo(5, Associativity.LEFT));
     }
 
     public Parser(String input) {
@@ -34,7 +50,7 @@ public class Parser {
     private Token eat(TokenType expected) { //Verifica se o token atual é o esperado e chama nextToken() para atualizar o token
         Token t = currentToken;
         if (t.type() != expected) {
-            throw new RuntimeException("Erro de sintaxe: esperado " + expected + ", mas encontrou " + t.type() + " ('" + t.lexeme() + "') na linha " + t.line());
+            throw new ParserException("Erro de sintaxe: esperado " + expected + ", mas encontrou " + t.type() + " ('" + t.lexeme() + "') na linha " + t.line());
         }
         currentToken = lexer.nextToken();
         return t;
@@ -118,6 +134,7 @@ public class Parser {
 
     private Cmd parseCommand() {
         return switch (currentToken.type()) {
+            case LBRACE -> parseBlock();
             case IF -> parseIf();
             case ELSE -> parseElse();
             case PRINT -> parsePrint();
@@ -129,7 +146,7 @@ public class Parser {
                 if (lvalue instanceof VarAccessExp && currentToken.type() == TokenType.LPAREN) yield parseCall(lvalue);
                 else yield  parseAssignment(lvalue);
             }
-            default -> throw new RuntimeException("Comando inválido '" + currentToken.lexeme() + "' na linha " + currentToken.line());
+            default -> throw new ParserException("Comando inválido '" + currentToken.lexeme() + "' na linha " + currentToken.line());
         };
     }
 
@@ -148,9 +165,10 @@ public class Parser {
         eat(TokenType.LPAREN);
         Exp condition = parseExpression(); //TODO: CHECK THIS METHOD
         eat(TokenType.RPAREN);
-        Cmd thenBranch = parseBlock();
+        Cmd thenBranch = parseCommand();
         Cmd elseBranch = null;
         if (currentToken.type() == TokenType.ELSE) {
+            eat(TokenType.ELSE);
             elseBranch = parseCommand();
         }
         return new IfCmd(condition, thenBranch, elseBranch);
@@ -174,7 +192,7 @@ public class Parser {
             collection = parseExpression();
         }
         eat(TokenType.RPAREN);
-        Cmd body = parseBlock();
+        Cmd body = parseCommand();
         return new IterateCmd(var, collection, body);
     }
 
@@ -237,6 +255,25 @@ public class Parser {
 
     private Exp parseExpression() { return parseExpression(0); }
 
+//    private Exp parseExpression(int minPrecedence) {
+//        Exp left;
+//        if (currentToken.type() == TokenType.NOT || currentToken.type() == TokenType.MINUS) {
+//            Token op = eat(currentToken.type());
+//            Exp exp = parseExpression(6); // Precedência de unários
+//            left = new UnaryExp(op.lexeme(), exp);
+//        } else {
+//            left = parsePrimaryExpression();
+//        }
+//
+//        while (PRECEDENCE.containsKey(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
+//            Token opToken = eat(currentToken.type());
+//            int currentPrecedence = PRECEDENCE.get(opToken.type());
+//            // Associatividade à direita (não temos, mas seria `currentPrecedence`)
+//            Exp right = parseExpression(currentPrecedence + 1);
+//            left = new BinOpExp(left, opToken.lexeme(), right);
+//        }
+//        return left;
+//    }
     private Exp parseExpression(int minPrecedence) {
         Exp left;
         if (currentToken.type() == TokenType.NOT || currentToken.type() == TokenType.MINUS) {
@@ -247,14 +284,37 @@ public class Parser {
             left = parsePrimaryExpression();
         }
 
-        while (PRECEDENCE.containsKey(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
+        while (isBinaryOperator(currentToken.type()) && OPERATOR_INFO.get(currentToken.type()).precedence() >= minPrecedence) {
             Token opToken = eat(currentToken.type());
-            int currentPrecedence = PRECEDENCE.get(opToken.type());
-            // Associatividade à direita (não temos, mas seria `currentPrecedence`)
-            Exp right = parseExpression(currentPrecedence + 1);
+            OpInfo opInfo = OPERATOR_INFO.get(opToken.type());
+            int currentPrecedence = opInfo.precedence();
+
+            // Para associatividade à DIREITA, a recursão usa a MESMA precedência.
+            // Para associatividade à ESQUERDA e NÃO-ASSOCIATIVA, a precedência da recursão
+            // aumenta para evitar que operadores de mesma precedência sejam agrupados à direita.
+            int nextMinPrecedence = (opInfo.assoc() == Associativity.RIGHT)
+                    ? currentPrecedence
+                    : currentPrecedence + 1;
+
+            Exp right = parseExpression(nextMinPrecedence);
+
+            // Agora, construímos o nó da árvore para a operação atual.
             left = new BinOpExp(left, opToken.lexeme(), right);
+
+            // VERIFICAÇÃO FINAL PARA NÃO-ASSOCIATIVIDADE
+            // Esta verificação acontece DEPOIS de construir o nó `left`, quando o `currentToken`
+            // já é o próximo operador na fila, permitindo a comparação correta.
+            if (opInfo.assoc() == Associativity.NON_ASSOCIATIVE) {
+                if (isBinaryOperator(currentToken.type()) && OPERATOR_INFO.get(currentToken.type()).precedence() == currentPrecedence) {
+                    throw new ParserException("Erro de sintaxe: O operador '" + opToken.lexeme() + "' não é associativo e não pode ser encadeado.");
+                }
+            }
         }
+
         return left;
+    }
+    private boolean isBinaryOperator(TokenType type) {
+        return OPERATOR_INFO.containsKey(type);
     }
 
     private Exp parsePrimaryExpression() {
@@ -294,7 +354,7 @@ public class Parser {
                     return parseLValue();
                 }
             default:
-                throw new RuntimeException("Expressão primária inesperada: " + token.lexeme() + " na linha " + token.line());
+                throw new ParserException("Expressão primária inesperada: " + token.lexeme() + " na linha " + token.line());
         }
     }
 
@@ -323,28 +383,56 @@ public class Parser {
 //        }
 //        return new NewExp(type, size);
 //    }
+//    private NewExp parseNewExpression() {
+//        eat(TokenType.NEW);
+//        // Primeiro, analisamos apenas o tipo base (ex: Int, Ponto, etc.)
+//        TypeNode baseType = parseBaseTypeNode();
+//        //TypeNode baseType = parseTypeNode();
+//
+//        // Em seguida, verificamos se é uma alocação de array com tamanho
+//        if (currentToken.type() == TokenType.LBRACK) {
+//            eat(TokenType.LBRACK);
+//            Optional<Exp> size = Optional.of(parseExpression());
+//            eat(TokenType.RBRACK);
+//
+//            // O tipo final é um tipo de array
+//            TypeNode arrayType = new ArrayTypeNode(baseType);
+//            return new NewExp(arrayType, size);
+//        } else {
+//            // Se não houver colchetes, é uma alocação de registro (ex: new Ponto)
+//            return new NewExp(baseType, Optional.empty());
+//        }
+//    }
     private NewExp parseNewExpression() {
         eat(TokenType.NEW);
-        // Primeiro, analisamos apenas o tipo base (ex: Int, Ponto, etc.)
-        TypeNode baseType = parseBaseTypeNode();
-        //TypeNode baseType = parseTypeNode();
 
-        // Em seguida, verificamos se é uma alocação de array com tamanho
+        // 1. Primeiro, analisamos o tipo base (ex: Char, Int, Ponto).
+        TypeNode type = parseBaseTypeNode();
+
+        // 2. Em seguida, contamos e consumimos as dimensões de tipo vazias ('[]').
+        // Para `new Char[][][nl]`, isso irá consumir os dois primeiros pares de colchetes.
+        while (currentToken.type() == TokenType.LBRACK && peek().type() == TokenType.RBRACK) {
+            eat(TokenType.LBRACK);
+            eat(TokenType.RBRACK);
+            type = new ArrayTypeNode(type);
+        }
+
+        // 3. Finalmente, verificamos a dimensão de alocação, que contém uma expressão de tamanho.
+        // Para `new Char[][][nl]`, esta é a parte `[nl]`.
         if (currentToken.type() == TokenType.LBRACK) {
             eat(TokenType.LBRACK);
             Optional<Exp> size = Optional.of(parseExpression());
             eat(TokenType.RBRACK);
 
-            // O tipo final é um tipo de array
-            TypeNode arrayType = new ArrayTypeNode(baseType);
-            return new NewExp(arrayType, size);
+            // O tipo final do objeto criado é um array do tipo que acabamos de analisar.
+            TypeNode finalType = new ArrayTypeNode(type);
+            return new NewExp(finalType, size);
         } else {
-            // Se não houver colchetes, é uma alocação de registro (ex: new Ponto)
-            return new NewExp(baseType, Optional.empty());
+            // Se não houver colchetes de tamanho, é uma alocação de registro (ex: new Ponto).
+            return new NewExp(type, Optional.empty());
         }
     }
 
-    // 2. ADICIONE este novo método auxiliar à classe Parser:
     private BaseTypeNode parseBaseTypeNode() {
         Token t = currentToken;
         return switch (t.type()) {
@@ -353,7 +441,7 @@ public class Parser {
             case CHAR_TYPE -> new BaseTypeNode(eat(TokenType.CHAR_TYPE).lexeme());
             case FLOAT_TYPE -> new BaseTypeNode(eat(TokenType.FLOAT_TYPE).lexeme());
             case TYID -> new BaseTypeNode(eat(TokenType.TYID).lexeme());
-            default -> throw new RuntimeException("Nome de tipo base esperado, mas encontrou " + t.lexeme());
+            default -> throw new ParserException("Nome de tipo base esperado, mas encontrou " + t.lexeme());
         };
     }
 
@@ -374,7 +462,7 @@ public class Parser {
             }
         }
         if (!(base instanceof LValue)) {
-            throw new RuntimeException("Expressão inválida para o lado esquerdo de uma atribuição.");
+            throw new ParserException("Expressão inválida para o lado esquerdo de uma atribuição.");
         }
         return (LValue)base;
     }
@@ -398,7 +486,7 @@ public class Parser {
             case CHAR_TYPE -> new BaseTypeNode(eat(TokenType.CHAR_TYPE).lexeme());
             case FLOAT_TYPE -> new BaseTypeNode(eat(TokenType.FLOAT_TYPE).lexeme());
             case TYID -> new BaseTypeNode(eat(TokenType.TYID).lexeme());
-            default -> throw new RuntimeException("Nome de tipo base esperado.");
+            default -> throw new ParserException("Nome de tipo base esperado.");
         };
 
         while (currentToken.type() == TokenType.LBRACK) {

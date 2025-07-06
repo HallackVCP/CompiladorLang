@@ -1,22 +1,22 @@
-// Testa comandos 'if-else' e operadores lógicos/relacionais.
+-- Testa comandos 'if-else' e operadores lógicos/relacionais.
 main() {
   x = 10;
   y = 20;
 
-  // Teste 1: if-then
+  -- Teste 1: if-then
   if (x < y) {
-    print 1; // Deve imprimir 1
+    print 1; -- Deve imprimir 1
   }
 
-  // Teste 2: if-then-else
+  -- Teste 2: if-then-else
   if (!(x == 10)) {
-    print 99; // Não deve imprimir
+    print 99; -- Não deve imprimir
   } else {
-    print 2; // Deve imprimir 2
+    print 2; -- Deve imprimir 2
   }
 
-  // Teste 3: Lógica com &&
+  -- Teste 3: Lógica com &&
   if (x < 100 && y == 20) {
-    print 3; // Deve imprimir 3
+    print 3; -- Deve imprimir 3
   }
 }
