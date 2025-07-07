@@ -1,9 +1,10 @@
 package org.example;
 
+import org.antlr.v4.runtime.*;
+import org.example.lang.parser.*;
 import org.example.lang.Exception.ParserException;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
-import org.example.lang.parser.Parser;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,8 +23,32 @@ public class Compiler {
 
         try {
             String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-            Parser parser = new Parser(sourceCode);
-            Program program = parser.parseProgram();
+            CharStream sourceCodeCharStream = CharStreams.fromString(sourceCode);
+            LangLexer lexer = new LangLexer(sourceCodeCharStream);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            LangParser parser = new LangParser(tokens);
+            parser.removeErrorListeners();
+            // Cria um listener para capturar erros
+            final boolean[] hasError = { false };
+            parser.addErrorListener(new BaseErrorListener() {
+                @Override
+                public void syntaxError(Recognizer<?, ?> recognizer,
+                                        Object offendingSymbol,
+                                        int line, int charPositionInLine,
+                                        String msg,
+                                        RecognitionException e) {
+                    System.err.printf("Error at line %d:%d - %s%n", line, charPositionInLine, msg);
+                    hasError[0] = true;
+                }
+            });
+
+
+            // Tenta analisar a regra inicial (exemplo: prog)
+            parser.prog();
+
+            if(hasError[0]){
+                throw new ParserException("Parser Excepiotn");
+            }
 
             switch (directive) {
                 case "-syn": // Executa a análise sintática do programa
@@ -31,7 +56,7 @@ public class Compiler {
                     break;
                 case "-i": // Interpreta o programa
                     Interpreter interpreter = new Interpreter();
-                    interpreter.interpret(program);
+                    //interpreter.interpret(program);
                     break;
                 default:
                     System.err.println("Diretiva desconhecida: " + directive);

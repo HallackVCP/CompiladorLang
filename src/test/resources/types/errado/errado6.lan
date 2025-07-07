@@ -1,7 +1,0 @@
-main() {
-   x = 10;
-   iterate(z : 10){
-      print '*';
-   }
-   print z;
-}
