@@ -497,14 +497,11 @@ public class Parser {
         return type;
     }
 
-    // Helper para manter a simplicidade em locais que só precisam do nome do tipo como String
     private String parseTypeNameAsString() {
-        return parseTypeNode().toString(); // Uma representação em string simples
+        return parseTypeNode().toString();
     }
 
     private Token peek() {
-        // Implementar um buffer de lookahead no Lexer seria mais eficiente
-        // Esta é uma simplificação.
         Lexer tempLexer = new Lexer(lexer.getInput().substring(lexer.getPosition()));
         return tempLexer.nextToken();
     }
