@@ -5,6 +5,13 @@ import org.example.lang.Exception.LexerException;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
+
 public class Lexer {
     private final String input;
     private int position = 0;

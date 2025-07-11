@@ -10,6 +10,12 @@ import org.example.lang.ast.type.BaseTypeNode;
 import org.example.lang.lexer.*;
 import java.util.*;
 
+/**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
 public class Parser {
     private Lexer lexer;
     private Token currentToken;

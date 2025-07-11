@@ -9,6 +9,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+
+/**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
+
 public class Compiler {
     public static void main(String[] args) {
         if (args.length != 2) {

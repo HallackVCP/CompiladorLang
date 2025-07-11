@@ -15,10 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Classe de teste para a semântica completa do sistema.
- * Esta classe contém testes que verificam a semântica completa da linguagem,
- * incluindo a análise de comandos, expressões e outros elementos da AST.
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
  */
+
 public class SemanticaFullTest {
 
 

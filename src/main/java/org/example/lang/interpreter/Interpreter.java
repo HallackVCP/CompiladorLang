@@ -17,6 +17,13 @@ import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
+
 public class Interpreter implements Visitor<Value> {
     private final Environment environment = new Environment();
     private final Scanner inputScanner = new Scanner(System.in);

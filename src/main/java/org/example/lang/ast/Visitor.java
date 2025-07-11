@@ -6,6 +6,13 @@ import org.example.lang.ast.exp.*;
 import org.example.lang.ast.type.ArrayTypeNode;
 import org.example.lang.ast.type.BaseTypeNode;
 
+/**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
+
 public interface Visitor<T> {
     // Nós de Tipo
     T visit(BaseTypeNode n);

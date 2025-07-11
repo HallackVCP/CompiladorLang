@@ -12,6 +12,13 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
+
 public class TypesErradoTest {
 
     @Test
