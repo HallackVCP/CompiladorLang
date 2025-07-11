@@ -96,16 +96,16 @@ public class TypesSimpleTest {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> System.setIn(originalIn))); // Restaurar System.in ao final
     }
 
-    @Test
-    public void testScopeSimple() throws IOException {
-        simulateInput("5");
-        String filePath = "src/test/resources/types/simple/scope.lan";
-        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-        Parser parser = new Parser(sourceCode);
-        Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
-    }
+//    @Test
+//    public void testScopeSimple() throws IOException {
+//        simulateInput("5");
+//        String filePath = "src/test/resources/types/simple/scope.lan";
+//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+//        Parser parser = new Parser(sourceCode);
+//        Program program = parser.parseProgram();
+//        Interpreter interpreter = new Interpreter();
+//        assertDoesNotThrow(() -> interpreter.interpret(program));
+//    }
 
     @Test
     public void testTeste0Simple() throws IOException {

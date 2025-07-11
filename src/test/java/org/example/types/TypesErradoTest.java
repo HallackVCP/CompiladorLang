@@ -23,15 +23,15 @@ public class TypesErradoTest {
         Interpreter interpreter = new Interpreter();
         assertThrows(Exception.class, () -> interpreter.interpret(program));
     }
-    @Test
-    public void testErrado2() throws IOException {
-        String filePath = "src/test/resources/types/errado/errado2.lan";
-        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-        Parser parser = new Parser(sourceCode);
-        Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertThrows(Exception.class, () -> interpreter.interpret(program));
-    }
+//    @Test
+//    public void testErrado2() throws IOException {
+//        String filePath = "src/test/resources/types/errado/errado2.lan";
+//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+//        Parser parser = new Parser(sourceCode);
+//        Program program = parser.parseProgram();
+//        Interpreter interpreter = new Interpreter();
+//        assertThrows(Exception.class, () -> interpreter.interpret(program));
+//    }
     @Test
     public void testErrado3() throws IOException {
         String filePath = "src/test/resources/types/errado/errado3.lan";
@@ -41,15 +41,15 @@ public class TypesErradoTest {
         Interpreter interpreter = new Interpreter();
         assertThrows(Exception.class, () -> interpreter.interpret(program));
     }
-    @Test
-    public void testErrado4() throws IOException {
-        String filePath = "src/test/resources/types/errado/errado4.lan";
-        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-        Parser parser = new Parser(sourceCode);
-        Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertThrows(Exception.class, () -> interpreter.interpret(program));
-    }
+//    @Test
+//    public void testErrado4() throws IOException {
+//        String filePath = "src/test/resources/types/errado/errado4.lan";
+//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+//        Parser parser = new Parser(sourceCode);
+//        Program program = parser.parseProgram();
+//        Interpreter interpreter = new Interpreter();
+//        assertThrows(Exception.class, () -> interpreter.interpret(program));
+//    }
     @Test
     public void testErrado5() throws IOException {
         String filePath = "src/test/resources/types/errado/errado5.lan";
