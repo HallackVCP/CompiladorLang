@@ -20,13 +20,7 @@ public class Environment {
         scopes.push(new HashMap<>());
     }
 
-//    public void define(String name, Value value) {
-//        // Verifica se o nome já está visível em qualquer escopo.
-//        if (isDefined(name)) {
-//            throw new RuntimeException("Erro: O nome '" + name + "' já está definido neste escopo ou em um escopo externo.");
-//        }
-//        scopes.peek().put(name, value);
-//    }
+
     public void define(String name, Value value) {
         // A verificação agora é feita apenas no escopo atual (o mapa no topo da pilha).
         if (scopes.peek().containsKey(name)) {

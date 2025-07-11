@@ -180,7 +180,7 @@ public class Lexer {
         return input.charAt(position + 2);
     }
 
-    // Substitua o método charLiteral inteiro por esta nova versão
+
     private Token getCharToken() {
         int startCol = column;
         eat('\''); // Consome a aspa inicial

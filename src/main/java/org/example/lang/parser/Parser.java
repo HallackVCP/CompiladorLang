@@ -92,7 +92,6 @@ public class Parser {
         List<DataDecl.Field> fields = new ArrayList<>();
         while (currentToken.type() == TokenType.ID && peek().type() == TokenType.DOUBLE_COLON) { // Pode usar peek() para checar
             String fieldName = eat(TokenType.ID).lexeme();
-            // Substitua as duas linhas 'eat(TokenType.COLON)' por esta única linha:
             eat(TokenType.DOUBLE_COLON);
             TypeNode fieldType = parseTypeNode();
             eat(TokenType.SEMI);

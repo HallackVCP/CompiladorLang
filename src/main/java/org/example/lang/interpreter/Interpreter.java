@@ -220,37 +220,7 @@ public class Interpreter implements Visitor<Value> {
     }
 
     // --- Visitantes de Expressão ---
-//    @Override
-//    public Value visit(BinOpExp e) {
-//        Value left = e.left().accept(this);
-//        Value right = e.right().accept(this);
-//
-//        if (left instanceof IntValue && right instanceof IntValue) {
-//            int l = ((IntValue) left).value();
-//            int r = ((IntValue) right).value();
-//            return switch (e.op()) {
-//                case "+" -> new IntValue(l + r);
-//                case "-" -> new IntValue(l - r);
-//                case "*" -> new IntValue(l * r);
-//                case "/" -> new IntValue(l / r);
-//                case "%" -> new IntValue(l % r);
-//                case "<" -> new BoolValue(l < r);
-//                case "==" -> new BoolValue(l == r);
-//                case "!=" -> new BoolValue(l != r);
-//                default -> throw new InterpreterException("Operador binário desconhecido para inteiros: " + e.op());
-//            };
-//        } else if (left instanceof BoolValue && right instanceof BoolValue) {
-//            boolean l = ((BoolValue) left).value();
-//            boolean r = ((BoolValue) right).value();
-//            return switch (e.op()) {
-//                case "&&" -> new BoolValue(l && r);
-//                case "==" -> new BoolValue(l == r);
-//                case "!=" -> new BoolValue(l != r);
-//                default -> throw new InterpreterException("Operador binário desconhecido para booleanos: " + e.op());
-//            };
-//        }
-//        throw new InterpreterException("Operação binária não suportada para os tipos dados: " + left.getClass().getSimpleName() + " " + e.op() + " " + right.getClass().getSimpleName());
-//    }
+
     @Override
     public Value visit(BinOpExp e) {
         Value left = e.left().accept(this);

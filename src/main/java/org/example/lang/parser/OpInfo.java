@@ -8,4 +8,4 @@ package org.example.lang.parser;
  * ${tags}
  */
 public record OpInfo(int precedence, Associativity assoc) {}
-// This record holds information about an operator's precedence and associativity.
+
