@@ -1,5 +1,6 @@
 package org.example.lang.ast.decl;
 
+import org.example.lang.ast.TypeNode;
 import org.example.lang.ast.Visitor;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public record DataDecl(boolean isAbstract, String name, List<Field> fields, List
     /**
      * Representa um único campo (atributo) dentro de uma declaração de 'data'.
      */
-    public record Field(String name, String type) {}
+    public record Field(String name, TypeNode type) {}
 
     @Override
     public <T> T accept(Visitor<T> visitor) {

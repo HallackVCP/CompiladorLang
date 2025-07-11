@@ -1,5 +1,6 @@
 package org.example.lang.ast.decl;
 
+import org.example.lang.ast.TypeNode;
 import org.example.lang.ast.Visitor;
 import org.example.lang.ast.cmd.Cmd;
 
@@ -16,12 +17,12 @@ import java.util.List;
  * Representa a definição de uma função.
  * Inclui seu nome, parâmetros, tipos de retorno e o comando que constitui seu corpo.
  */
-public record FunDecl(String name, List<Param> params, List<String> returnTypes, Cmd body) implements Decl {
+public record FunDecl(String name, List<Param> params, List<TypeNode> returnTypes, Cmd body) implements Decl {
 
     /**
      * Representa um único parâmetro de função, com nome e tipo.
      */
-    public record Param(String name, String type) {}
+    public record Param(String name, TypeNode type) {}
 
     @Override
     public <T> T accept(Visitor<T> visitor) {

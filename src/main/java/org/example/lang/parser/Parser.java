@@ -94,7 +94,7 @@ public class Parser {
             String fieldName = eat(TokenType.ID).lexeme();
             // Substitua as duas linhas 'eat(TokenType.COLON)' por esta única linha:
             eat(TokenType.DOUBLE_COLON);
-            String fieldType = parseTypeNameAsString();
+            TypeNode fieldType = parseTypeNode();
             eat(TokenType.SEMI);
             fields.add(new DataDecl.Field(fieldName, fieldType));
         }
@@ -115,19 +115,20 @@ public class Parser {
             do { //Lê os parâmetros da função
                 String paramName = eat(TokenType.ID).lexeme();
                 eat(TokenType.DOUBLE_COLON);
-                String paramType = parseTypeNameAsString();
+                TypeNode paramType = parseTypeNode();
                 params.add(new FunDecl.Param(paramName, paramType));
                 if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
             } while (true);
         }
         eat(TokenType.RPAREN);
 
-        List<String> returnTypes = new ArrayList<>();
+        List<TypeNode> returnTypes = new ArrayList<>();
         if (currentToken.type() == TokenType.COLON) {
             //Obtém os tipos de retorno da função
             eat(TokenType.COLON);
             do {
-                returnTypes.add(parseTypeNameAsString());
+                TypeNode returnType = parseTypeNode();
+                returnTypes.add(returnType);
                 if (currentToken.type() == TokenType.COMMA) eat(TokenType.COMMA); else break;
             } while (true);
         }
@@ -501,10 +502,6 @@ public class Parser {
             type = new ArrayTypeNode(type);
         }
         return type;
-    }
-
-    private String parseTypeNameAsString() {
-        return parseTypeNode().toString();
     }
 
     private Token peek() {
