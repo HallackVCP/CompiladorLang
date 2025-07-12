@@ -227,24 +227,6 @@ public class Lexer {
         eat('\''); // Consome a aspa final
         return new Token(TokenType.CHAR, String.valueOf(value), line, startCol);
     }
-//    private Token getCharToken() {
-//        int startCol = column;
-//        eat('\'');
-//        char value = currentChar();
-//        if (value == '\\') { // Caractere de escape
-//            advance();
-//            value = switch (currentChar()) {
-//                case 'n' -> '\n';
-//                case 't' -> '\t';
-//                case '\'' -> '\'';
-//                case '\\' -> '\\';
-//                default -> throw new LexerException("Caractere de escape inválido: \\" + currentChar());
-//            };
-//        }
-//        advance();
-//        eat('\'');
-//        return new Token(TokenType.CHAR, String.valueOf(value), line, startCol);
-//    }
 
     private void eat(char c) {
         if (position < input.length() && currentChar() == c) {
