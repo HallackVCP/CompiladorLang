@@ -261,25 +261,6 @@ public class Parser {
 
     private Exp parseExpression() { return parseExpression(0); }
 
-//    private Exp parseExpression(int minPrecedence) {
-//        Exp left;
-//        if (currentToken.type() == TokenType.NOT || currentToken.type() == TokenType.MINUS) {
-//            Token op = eat(currentToken.type());
-//            Exp exp = parseExpression(6); // Precedência de unários
-//            left = new UnaryExp(op.lexeme(), exp);
-//        } else {
-//            left = parsePrimaryExpression();
-//        }
-//
-//        while (PRECEDENCE.containsKey(currentToken.type()) && PRECEDENCE.get(currentToken.type()) >= minPrecedence) {
-//            Token opToken = eat(currentToken.type());
-//            int currentPrecedence = PRECEDENCE.get(opToken.type());
-//            // Associatividade à direita (não temos, mas seria `currentPrecedence`)
-//            Exp right = parseExpression(currentPrecedence + 1);
-//            left = new BinOpExp(left, opToken.lexeme(), right);
-//        }
-//        return left;
-//    }
     private Exp parseExpression(int minPrecedence) {
         Exp left;
         if (currentToken.type() == TokenType.NOT || currentToken.type() == TokenType.MINUS) {
@@ -304,7 +285,6 @@ public class Parser {
 
             Exp right = parseExpression(nextMinPrecedence);
 
-            // Agora, construímos o nó da árvore para a operação atual.
             left = new BinOpExp(left, opToken.lexeme(), right);
 
             // VERIFICAÇÃO FINAL PARA NÃO-ASSOCIATIVIDADE
@@ -352,7 +332,6 @@ public class Parser {
                 eat(TokenType.RPAREN);
                 return exp;
             case ID:
-                // CORREÇÃO: Verificamos o próximo token para resolver a ambiguidade.
                 // Se for '(', é uma chamada de função. Senão, é um lvalue.
                 if (peek().type() == TokenType.LPAREN) {
                     return parseFunctionCallExpression();
@@ -378,37 +357,6 @@ public class Parser {
         return new FunCallExp(idName, args, returnIndex);
     }
 
-//    private NewExp parseNewExpression() {
-//        eat(TokenType.NEW);
-//        TypeNode type = parseTypeNode();
-//        Optional<Exp> size = Optional.empty();
-//        if (currentToken.type() == TokenType.LBRACK) {
-//            eat(TokenType.LBRACK);
-//            size = Optional.of(parseExpression());
-//            eat(TokenType.RBRACK);
-//        }
-//        return new NewExp(type, size);
-//    }
-//    private NewExp parseNewExpression() {
-//        eat(TokenType.NEW);
-//        // Primeiro, analisamos apenas o tipo base (ex: Int, Ponto, etc.)
-//        TypeNode baseType = parseBaseTypeNode();
-//        //TypeNode baseType = parseTypeNode();
-//
-//        // Em seguida, verificamos se é uma alocação de array com tamanho
-//        if (currentToken.type() == TokenType.LBRACK) {
-//            eat(TokenType.LBRACK);
-//            Optional<Exp> size = Optional.of(parseExpression());
-//            eat(TokenType.RBRACK);
-//
-//            // O tipo final é um tipo de array
-//            TypeNode arrayType = new ArrayTypeNode(baseType);
-//            return new NewExp(arrayType, size);
-//        } else {
-//            // Se não houver colchetes, é uma alocação de registro (ex: new Ponto)
-//            return new NewExp(baseType, Optional.empty());
-//        }
-//    }
     private NewExp parseNewExpression() {
         eat(TokenType.NEW);
 
