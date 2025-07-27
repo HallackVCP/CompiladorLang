@@ -3,6 +3,7 @@ package org.example.types;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
+import org.example.lang.semantica.TypeCheckerVisitor;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -29,8 +30,8 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -39,8 +40,8 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -51,8 +52,8 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -61,8 +62,8 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -71,8 +72,8 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -81,8 +82,8 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -94,8 +95,8 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
     private void simulateInput(String simulatedInput) {
         InputStream originalIn = System.in;
@@ -103,16 +104,16 @@ public class TypesSimpleTest {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> System.setIn(originalIn))); // Restaurar System.in ao final
     }
 
-//    @Test
-//    public void testScopeSimple() throws IOException {
-//        simulateInput("5");
-//        String filePath = "src/test/resources/types/simple/scope.lan";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
+    @Test
+    public void testScopeSimple() throws IOException {
+        simulateInput("5");
+        String filePath = "src/test/resources/types/simple/scope.lan";
+        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+        Parser parser = new Parser(sourceCode);
+        Program program = parser.parseProgram();
+        Interpreter interpreter = new Interpreter();
+        assertDoesNotThrow(() -> interpreter.interpret(program));
+    }
 
     @Test
     public void testTeste0Simple() throws IOException {
@@ -120,7 +121,7 @@ public class TypesSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 }

@@ -1,9 +1,10 @@
 package org.example;
 
-import org.example.lang.Exception.ParserException;
+import org.example.lang.Exception.AnalysisException;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
+import org.example.lang.semantica.TypeCheckerVisitor;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,8 +21,8 @@ import java.nio.file.Paths;
 public class Compiler {
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.err.println("Uso: java lang.Compiler <diretiva> <caminho_arquivo>");
-            System.err.println("Diretivas: -syn (análise sintática), -i (interpretação)");
+            System.err.println("Uso: java org.example.Compiler <diretiva> <caminho_arquivo>");
+            System.err.println("Diretivas: -syn, -i, -t");
             return;
         }
 
@@ -34,24 +35,34 @@ public class Compiler {
             Program program = parser.parseProgram();
 
             switch (directive) {
-                case "-syn": // Executa a análise sintática do programa
-                    System.out.println("accept"); // Se chegou aqui, o parse foi bem-sucedido
+                case "-syn":
+                    System.out.println("accept");
                     break;
-                case "-i": // Interpreta o programa
+
+                case "-t": // Nova diretiva para verificação de tipos
+                    TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+                    typeChecker.check(program);
+                    System.out.println("accept"); // Se chegou aqui, a verificação foi bem-sucedida
+                    break;
+
+                case "-i":
+                    // É uma boa prática rodar a verificação de tipos antes de interpretar
+                    TypeCheckerVisitor preInterpreterChecker = new TypeCheckerVisitor();
+                    preInterpreterChecker.check(program);
+
                     Interpreter interpreter = new Interpreter();
                     interpreter.interpret(program);
                     break;
+
                 default:
                     System.err.println("Diretiva desconhecida: " + directive);
             }
 
         } catch (IOException e) {
             System.err.println("Erro ao ler o arquivo: " + filePath);
-        } catch (ParserException e) {
-            // O Parser e o Interpretador lançam RuntimeException em caso de erro.
+        } catch (AnalysisException e) {
             System.err.println(e.getMessage());
-            // Para a análise sintática, a saída em caso de erro deve ser "reject"
-            if (directive.equals("-syn")) {
+            if (directive.equals("-syn") || directive.equals("-t")) {
                 System.out.println("reject");
             }
         }
