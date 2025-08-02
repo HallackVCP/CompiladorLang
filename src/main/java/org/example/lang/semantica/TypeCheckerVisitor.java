@@ -109,11 +109,31 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
 
     @Override
     public TypeNode visit(AssignCmd c) {
-        TypeNode lvalueType = c.lvalue().accept(this);
+        // Primeiro, determina o tipo da expressão que está sendo atribuída.
         TypeNode expType = c.exp().accept(this);
 
-        if (!areTypesCompatible(lvalueType, expType)) {
-            throw new SemanticException("Tipos incompatíveis na atribuição. Esperado " + lvalueType + ", mas encontrou " + expType);
+        // Agora, lida com o lvalue.
+        if (c.lvalue() instanceof VarAccessExp vae) {
+            String varName = vae.name();
+            // Verifica se a variável já está definida em algum escopo visível.
+            TypeNode existingType = findVarInScopes(varName);
+
+            if (existingType != null) {
+                // Variável existe, verifica a compatibilidade de tipos.
+                if (!areTypesCompatible(existingType, expType)) {
+                    throw new SemanticException("Tipos incompatíveis na atribuição. A variável '" + varName + "' é do tipo " + existingType + ", mas encontrou " + expType);
+                }
+            } else {
+                // Variável não existe, então a declaramos no escopo ATUAL.
+                varContext.peek().put(varName, expType);
+            }
+        } else {
+            // Para lvalues complexos (a[i], p.x), eles devem existir.
+            // A chamada accept() aqui irá validar a existência da base (a, p).
+            TypeNode lvalueType = c.lvalue().accept(this);
+            if (!areTypesCompatible(lvalueType, expType)) {
+                throw new SemanticException("Tipos incompatíveis na atribuição. Esperado " + lvalueType + ", mas encontrou " + expType);
+            }
         }
         return null;
     }
@@ -161,15 +181,28 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
         checkFunctionCallArgs(e.name(), e.args(), func.params());
 
         if (e.returnIndex().isPresent()) {
-            TypeNode indexType = e.returnIndex().get().accept(this);
+            Exp indexExp = e.returnIndex().get();
+            TypeNode indexType = indexExp.accept(this);
+
+            // Verifica se o tipo do índice é Int
             if (!isInt(indexType)) {
                 throw new SemanticException("Índice de retorno de função deve ser do tipo Int.");
             }
-            if (func.returnTypes().isEmpty()) {
-                throw new SemanticException("Função '" + e.name() + "' não retorna valores e não pode ser indexada.");
+
+            // CORREÇÃO: Para uma verificação estática robusta, o índice deve ser um literal constante.
+            if (!(indexExp instanceof IntLiteralExp)) {
+                throw new SemanticException("Índice de retorno de função deve ser um literal inteiro constante para verificação estática.");
             }
-            // Simplificação: retornamos o primeiro tipo de retorno.
-            return func.returnTypes().get(0);
+
+            int indexValue = ((IntLiteralExp) indexExp).value();
+            List<TypeNode> returnTypes = func.returnTypes();
+
+            // Verifica se o índice está dentro dos limites dos valores de retorno
+            if (indexValue < 0 || indexValue >= returnTypes.size()) {
+                throw new SemanticException("Índice de retorno " + indexValue + " fora dos limites para a função '" + e.name() + "', que retorna " + returnTypes.size() + " valores.");
+            }
+
+            return returnTypes.get(indexValue);
         }
 
         return null; // Contexto de atribuição múltipla
@@ -177,10 +210,9 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
 
     @Override
     public TypeNode visit(VarAccessExp e) {
-        for (int i = varContext.size() - 1; i >= 0; i--) {
-            if (varContext.get(i).containsKey(e.name())) {
-                return varContext.get(i).get(e.name());
-            }
+        TypeNode type = findVarInScopes(e.name());
+        if (type != null) {
+            return type;
         }
         throw new SemanticException("Variável '" + e.name() + "' não definida neste escopo.");
     }
@@ -313,7 +345,7 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
             if (!isInt(sizeType)) {
                 throw new SemanticException("Tamanho do array deve ser do tipo Int, mas é " + sizeType);
             }
-            return new ArrayTypeNode(e.type());
+            return e.type();
         } else { // Alocação de registro
             if (e.type() instanceof BaseTypeNode btn && dataTypesContext.containsKey(btn.typeName())) {
                 return e.type();
@@ -351,6 +383,11 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
         throw new SemanticException("Acesso a array '[]' só pode ser aplicado a um tipo de array.");
     }
 
+    @Override
+    public TypeNode visit(NullTypeNode n) {
+        return null;
+    }
+
     // --- Métodos de Visita para Literais e Nós de Tipo ---
     @Override public TypeNode visit(IntLiteralExp e) { return new BaseTypeNode("Int"); }
     @Override public TypeNode visit(FloatLiteralExp e) { return new BaseTypeNode("Float"); }
@@ -379,6 +416,15 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
                 throw new SemanticException("Argumento " + i + " da função '" + funcName + "' tem tipo incorreto. Esperado " + paramType + ", mas encontrou " + argType);
             }
         }
+    }
+
+    private TypeNode findVarInScopes(String name) {
+        for (int i = varContext.size() - 1; i >= 0; i--) {
+            if (varContext.get(i).containsKey(name)) {
+                return varContext.get(i).get(name);
+            }
+        }
+        return null;
     }
 
     private boolean isInt(TypeNode type) { return type instanceof BaseTypeNode btn && btn.typeName().equals("Int"); }

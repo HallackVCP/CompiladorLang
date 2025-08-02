@@ -3,6 +3,7 @@ package org.example.lang.interpreter;
 import org.example.lang.Exception.InterpreterException;
 import org.example.lang.ast.type.ArrayTypeNode;
 import org.example.lang.ast.type.BaseTypeNode;
+import org.example.lang.ast.type.NullTypeNode;
 import org.example.lang.interpreter.value.*;
 import org.example.lang.ast.*;
 import org.example.lang.ast.cmd.*;
@@ -430,5 +431,10 @@ public class Interpreter implements Visitor<Value> {
             return av.elements().get(iv.value());
         }
         throw new InterpreterException("Acesso a array inválido.");
+    }
+
+    @Override
+    public Value visit(NullTypeNode n) {
+        return null;
     }
 }

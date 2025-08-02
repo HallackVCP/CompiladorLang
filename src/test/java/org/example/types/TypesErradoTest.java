@@ -37,8 +37,8 @@ public class TypesErradoTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertThrows(Exception.class, () -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertThrows(Exception.class, () -> typeChecker.check(program));
     }
     @Test
     public void testErrado3() throws IOException {
@@ -55,8 +55,8 @@ public class TypesErradoTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertThrows(Exception.class, () -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertThrows(Exception.class, () -> typeChecker.check(program));
     }
     @Test
     public void testErrado5() throws IOException {

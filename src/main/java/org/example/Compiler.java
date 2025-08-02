@@ -5,6 +5,7 @@ import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
 import org.example.lang.semantica.TypeCheckerVisitor;
+import org.example.lang.sourcegenerator.SourceGeneratorVisitor;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,7 +23,7 @@ public class Compiler {
     public static void main(String[] args) {
         if (args.length != 2) {
             System.err.println("Uso: java org.example.Compiler <diretiva> <caminho_arquivo>");
-            System.err.println("Diretivas: -syn, -i, -t");
+            System.err.println("Diretivas: -syn, -t, -i, -src");
             return;
         }
 
@@ -34,22 +35,28 @@ public class Compiler {
             Parser parser = new Parser(sourceCode);
             Program program = parser.parseProgram();
 
+            // A análise semântica é um pré-requisito para -t, -i, e -src
+            if (directive.equals("-t") || directive.equals("-i") || directive.equals("-src")) {
+                TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+                typeChecker.check(program);
+            }
+
             switch (directive) {
                 case "-syn":
                     System.out.println("accept");
                     break;
 
-                case "-t": // Nova diretiva para verificação de tipos
-                    TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
-                    typeChecker.check(program);
-                    System.out.println("accept"); // Se chegou aqui, a verificação foi bem-sucedida
+                case "-t":
+                    System.out.println("accept");
+                    break;
+
+                case "-src": // Nova diretiva para geração source-to-source
+                    SourceGeneratorVisitor generator = new SourceGeneratorVisitor();
+                    String pythonCode = generator.generate(program);
+                    System.out.print(pythonCode); // Usar print para não adicionar nova linha no final
                     break;
 
                 case "-i":
-                    // É uma boa prática rodar a verificação de tipos antes de interpretar
-                    TypeCheckerVisitor preInterpreterChecker = new TypeCheckerVisitor();
-                    preInterpreterChecker.check(program);
-
                     Interpreter interpreter = new Interpreter();
                     interpreter.interpret(program);
                     break;
@@ -60,9 +67,9 @@ public class Compiler {
 
         } catch (IOException e) {
             System.err.println("Erro ao ler o arquivo: " + filePath);
-        } catch (AnalysisException e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
-            if (directive.equals("-syn") || directive.equals("-t")) {
+            if (!directive.equals("-i")) { // -i já imprime seus próprios erros de runtime
                 System.out.println("reject");
             }
         }
