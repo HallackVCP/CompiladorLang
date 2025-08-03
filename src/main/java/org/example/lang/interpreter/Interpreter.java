@@ -386,29 +386,60 @@ public class Interpreter implements Visitor<Value> {
         throw new InterpreterException("Operador unário '" + e.op() + "' não aplicável a " + val.getClass().getSimpleName());
     }
 
+//    @Override
+//    public Value visit(NewExp e) {
+//        if (e.getType() instanceof BaseTypeNode btn) { // Ex: new Racional
+//            DataDecl decl = dataDeclarations.get(btn.typeName());
+//            if (decl == null) throw new InterpreterException("Tipo '" + btn.typeName() + "' não definido.");
+//
+//            Map<String, Value> fields = new HashMap<>();
+//            for (DataDecl.Field field : decl.fields()) {
+//                // Inicializa campos com valores padrão (null)
+//                fields.put(field.name(), new NullValue());
+//            }
+//            return new RecordValue(btn.typeName(), fields);
+//
+//        } else if (e.getType() instanceof ArrayTypeNode) { // Ex: new Int[10]
+//            if (e.size().isEmpty()) throw new InterpreterException("Tamanho do array não especificado.");
+//
+//            Value sizeVal = e.size().get().accept(this);
+//            if (!(sizeVal instanceof IntValue iv)) throw new InterpreterException("Tamanho do array deve ser inteiro.");
+//
+//            List<Value> elements = new ArrayList<>(Collections.nCopies(iv.value(), new NullValue()));
+//            return new ArrayValue(elements);
+//        }
+//        throw new InterpreterException("Tipo inválido para 'new'.");
+//    }
     @Override
     public Value visit(NewExp e) {
-        if (e.type() instanceof BaseTypeNode btn) { // Ex: new Racional
-            DataDecl decl = dataDeclarations.get(btn.typeName());
-            if (decl == null) throw new InterpreterException("Tipo '" + btn.typeName() + "' não definido.");
-
-            Map<String, Value> fields = new HashMap<>();
-            for (DataDecl.Field field : decl.fields()) {
-                // Inicializa campos com valores padrão (null)
-                fields.put(field.name(), new NullValue());
-            }
-            return new RecordValue(btn.typeName(), fields);
-
-        } else if (e.type() instanceof ArrayTypeNode) { // Ex: new Int[10]
-            if (e.size().isEmpty()) throw new InterpreterException("Tamanho do array não especificado.");
-
+        // Caso 1: É uma alocação de array (ex: new Int[10] ou new Ponto[5])
+        if (e.size().isPresent()) {
             Value sizeVal = e.size().get().accept(this);
-            if (!(sizeVal instanceof IntValue iv)) throw new InterpreterException("Tamanho do array deve ser inteiro.");
+            if (!(sizeVal instanceof IntValue)) {
+                throw new InterpreterException("Tamanho do array deve ser um inteiro.");
+            }
+            int size = ((IntValue) sizeVal).value();
 
-            List<Value> elements = new ArrayList<>(Collections.nCopies(iv.value(), new NullValue()));
+            // Cria uma lista de 'size' elementos, todos inicializados com NullValue.
+            List<Value> elements = new ArrayList<>(Collections.nCopies(size, new NullValue()));
             return new ArrayValue(elements);
         }
-        throw new InterpreterException("Tipo inválido para 'new'.");
+        // Caso 2: É uma alocação de registro (ex: new Ponto)
+        else {
+            if (e.typeNode() instanceof BaseTypeNode btn) {
+                DataDecl decl = dataDeclarations.get(btn.typeName());
+                if (decl != null) {
+                    Map<String, Value> fields = new HashMap<>();
+                    for (DataDecl.Field field : decl.fields()) {
+                        // Inicializa todos os campos com null.
+                        fields.put(field.name(), new NullValue());
+                    }
+                    return new RecordValue(btn.typeName(), fields);
+                }
+            }
+            // Se não for nenhum dos casos acima, o tipo é inválido para 'new'.
+            throw new InterpreterException("Tipo invalido para 'new': " + e.typeNode());
+        }
     }
 
     @Override

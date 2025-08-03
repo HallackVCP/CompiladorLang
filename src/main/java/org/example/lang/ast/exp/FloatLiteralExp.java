@@ -1,6 +1,7 @@
 package org.example.lang.ast.exp;
 
 
+import org.example.lang.ast.TypeNode;
 import org.example.lang.ast.Visitor;
 
 /**
@@ -10,9 +11,12 @@ import org.example.lang.ast.Visitor;
  * ${tags}
  */
 
-public record FloatLiteralExp(float value) implements Exp {
-    @Override
-    public <T> T accept(Visitor<T> visitor) {
-        return visitor.visit(this);
-    }
+public class FloatLiteralExp implements Exp {
+    private final float value;
+    private TypeNode type;
+    public FloatLiteralExp(float v) { this.value = v; }
+    public float value() { return value; }
+    @Override public void setType(TypeNode t) { this.type = t; }
+    @Override public TypeNode getType() { return type; }
+    @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

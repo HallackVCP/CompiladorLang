@@ -230,7 +230,7 @@ public class SourceGeneratorVisitor implements Visitor<String> {
         if (e.size().isPresent()) { // Array: new Int[10] -> [None] * 10
             return "[None] * (" + e.size().get().accept(this) + ")";
         } else { // Registro: new Ponto -> Ponto()
-            return ((BaseTypeNode) e.type()).typeName() + "()";
+            return ((BaseTypeNode) e.getType()).typeName() + "()";
         }
     }
 

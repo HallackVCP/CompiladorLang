@@ -3,13 +3,17 @@ package org.example;
 import org.example.lang.Exception.AnalysisException;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
+import org.example.lang.jasmingenerator.JasminGeneratorVisitor;
 import org.example.lang.parser.Parser;
+import org.example.lang.semantica.TypeAnnotationVisitor;
 import org.example.lang.semantica.TypeCheckerVisitor;
 import org.example.lang.sourcegenerator.SourceGeneratorVisitor;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Map;
 
 
 /**
@@ -35,10 +39,14 @@ public class Compiler {
             Parser parser = new Parser(sourceCode);
             Program program = parser.parseProgram();
 
-            // A análise semântica é um pré-requisito para -t, -i, e -src
-            if (directive.equals("-t") || directive.equals("-i") || directive.equals("-src")) {
+            // Fases de análise semântica e anotação (pré-requisitos)
+            if (directive.equals("-t") || directive.equals("-i") || directive.equals("-src") || directive.equals("-gen")) {
                 TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
                 typeChecker.check(program);
+
+                // Anota a AST com os tipos para o gerador de código
+                TypeAnnotationVisitor typeAnnotator = new TypeAnnotationVisitor();
+                typeAnnotator.annotate(program);
             }
 
             switch (directive) {
@@ -60,6 +68,19 @@ public class Compiler {
                     Interpreter interpreter = new Interpreter();
                     interpreter.interpret(program);
                     break;
+
+                case "-gen":
+                    String outputClassName = (args.length > 2) ? args[2] : "LangClass";
+                    JasminGeneratorVisitor jasminGen = new JasminGeneratorVisitor(outputClassName);
+                    Map<String, String> generatedFiles = jasminGen.generate(program);
+
+                    for (Map.Entry<String, String> entry : generatedFiles.entrySet()) {
+                        String fileName = entry.getKey() + ".j";
+                        Files.writeString(Paths.get(fileName), entry.getValue(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                        System.out.println("Arquivo gerado: " + fileName);
+                    }
+                    break;
+
 
                 default:
                     System.err.println("Diretiva desconhecida: " + directive);

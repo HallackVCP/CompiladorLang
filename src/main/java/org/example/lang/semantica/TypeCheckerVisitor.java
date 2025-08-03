@@ -345,12 +345,12 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
             if (!isInt(sizeType)) {
                 throw new SemanticException("Tamanho do array deve ser do tipo Int, mas é " + sizeType);
             }
-            return e.type();
+            return e.typeNode();
         } else { // Alocação de registro
-            if (e.type() instanceof BaseTypeNode btn && dataTypesContext.containsKey(btn.typeName())) {
-                return e.type();
+            if (e.typeNode() instanceof BaseTypeNode btn && dataTypesContext.containsKey(btn.typeName())) {
+                return e.typeNode();
             }
-            throw new SemanticException("Tipo '" + e.type() + "' não é um tipo de dado (registro) válido para 'new'.");
+            throw new SemanticException("Tipo '" + e.getType() + "' não é um tipo de dado (registro) válido para 'new'.");
         }
     }
 

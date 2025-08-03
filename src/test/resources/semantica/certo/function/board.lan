@@ -1,4 +1,3 @@
-
 printBoard(board :: Char[][], nl :: Int, nc :: Int){
     i = 0;
     iterate(nl){
