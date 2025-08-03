@@ -1,6 +1,7 @@
 package org.example.lang.sourcegenerator;
 
 import org.example.lang.ast.Program;
+import org.example.lang.ast.TypeNode;
 import org.example.lang.ast.Visitor;
 import org.example.lang.ast.cmd.AssignCmd;
 import org.example.lang.ast.cmd.BlockCmd;
@@ -19,6 +20,7 @@ import org.example.lang.ast.exp.ArrayAccessExp;
 import org.example.lang.ast.exp.BinOpExp;
 import org.example.lang.ast.exp.BoolLiteralExp;
 import org.example.lang.ast.exp.CharLiteralExp;
+import org.example.lang.ast.exp.Exp;
 import org.example.lang.ast.exp.FieldAccessExp;
 import org.example.lang.ast.exp.FloatLiteralExp;
 import org.example.lang.ast.exp.FunCallExp;
@@ -173,8 +175,21 @@ public class SourceGeneratorVisitor implements Visitor<String> {
     @Override
     public String visit(IterateCmd c) {
         StringBuilder sb = new StringBuilder();
-        String varName = c.var().orElse("_"); // Usa '_' se não houver variável
-        sb.append(indent()).append("for ").append(varName).append(" in range(").append(c.collection().accept(this)).append("):\n");
+        String varName = c.var().orElse("_");
+        Exp collection = c.collection();
+        String collectionStr = collection.accept(this);
+
+        // CORREÇÃO: Verifica o tipo da coleção para gerar o 'for' correto.
+        TypeNode collectionType = collection.getType();
+
+        if (collectionType instanceof ArrayTypeNode) {
+            // Se for um array, itera diretamente sobre os elementos.
+            sb.append(indent()).append("for ").append(varName).append(" in ").append(collectionStr).append(":\n");
+        } else {
+            // Se for um inteiro, usa a função range().
+            sb.append(indent()).append("for ").append(varName).append(" in range(").append(collectionStr).append("):\n");
+        }
+
         increaseIndent();
         sb.append(c.body().accept(this));
         decreaseIndent();
