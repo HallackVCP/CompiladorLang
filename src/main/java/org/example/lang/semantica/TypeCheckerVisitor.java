@@ -30,6 +30,8 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
     // Armazena os tipos de retorno esperados para a função atual
     private List<TypeNode> expectedReturnTypes;
 
+    private FunDecl currentFunctionDecl = null;
+
     // Método principal que inicia a verificação
     public void check(Program program) {
         // Passagem 1: Coletar todas as declarações de tipos e funções
@@ -38,7 +40,7 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
         program.accept(this);
     }
 
-    private void collectSymbols(Program program) {
+    void collectSymbols(Program program) {
         for (Decl decl : program.decls()) {
             if (decl instanceof DataDecl d) {
                 if (dataTypesContext.containsKey(d.name())) {
@@ -75,6 +77,7 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
 
     @Override
     public TypeNode visit(FunDecl d) {
+        this.currentFunctionDecl = d;
         varContext.push(new HashMap<>());
         expectedReturnTypes = d.returnTypes();
 
@@ -86,6 +89,7 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
 
         varContext.pop();
         expectedReturnTypes = null;
+        this.currentFunctionDecl = null;
         return null;
     }
 
@@ -350,7 +354,7 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
             if (e.typeNode() instanceof BaseTypeNode btn && dataTypesContext.containsKey(btn.typeName())) {
                 return e.typeNode();
             }
-            throw new SemanticException("Tipo '" + e.getType() + "' não é um tipo de dado (registro) válido para 'new'.");
+            throw new SemanticException("Tipo '" + e.typeNode() + "' não é um tipo de dado (registro) válido para 'new'.");
         }
     }
 
@@ -359,6 +363,22 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
         TypeNode recordType = e.recordExp().accept(this);
         if (recordType instanceof BaseTypeNode btn && dataTypesContext.containsKey(btn.typeName())) {
             DataDecl decl = dataTypesContext.get(btn.typeName());
+            if (decl.isAbstract()) {
+                boolean isAccessAllowed = false;
+                // O acesso só é permitido se estivermos dentro de uma função
+                if (currentFunctionDecl != null) {
+                    // E se essa função for uma das funções definidas dentro do tipo de dado
+                    for (FunDecl funcInScope : decl.functions()) {
+                        if (funcInScope.name().equals(currentFunctionDecl.name())) {
+                            isAccessAllowed = true;
+                            break;
+                        }
+                    }
+                }
+                if (!isAccessAllowed) {
+                    throw new SemanticException("Acesso ilegal ao campo '" + e.fieldName() + "'. O tipo '" + btn.typeName() + "' é abstrato e seus campos só podem ser acessados por seus próprios métodos.");
+                }
+            }
             for (DataDecl.Field field : decl.fields()) {
                 if (field.name().equals(e.fieldName())) {
                     return field.type();

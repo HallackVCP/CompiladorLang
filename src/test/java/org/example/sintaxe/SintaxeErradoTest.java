@@ -307,5 +307,19 @@ public class SintaxeErradoTest {
         Parser parser = new Parser(sourceCode);
         assertThrows(AnalysisException.class, () -> parser.parseProgram());
     }
+    @Test
+    public void testSintaxeErradoabsDataErrado1() throws IOException {
+        String filePath = "src/test/resources/sintaxe/errado/absDataErrado1.lan";
+        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+        Parser parser = new Parser(sourceCode);
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
+    }
+    @Test
+    public void testSintaxeErradoabsDataErrado2() throws IOException {
+        String filePath = "src/test/resources/sintaxe/errado/absDataErrado2.lan";
+        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+        Parser parser = new Parser(sourceCode);
+        assertThrows(AnalysisException.class, () -> parser.parseProgram());
+    }
 
 }

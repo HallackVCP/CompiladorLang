@@ -24,6 +24,7 @@ import org.example.lang.ast.exp.VarAccessExp;
 public class TypeAnnotationVisitor extends TypeCheckerVisitor {
 
     public void annotate(Program program) {
+        super.collectSymbols(program);
         program.accept(this);
     }
 

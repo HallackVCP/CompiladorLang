@@ -3,6 +3,7 @@ package org.example.semantica.certo.simple;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
+import org.example.lang.semantica.TypeCheckerVisitor;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -21,91 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  */
 
 public class SemanticaSimpleTest {
-//    @Test
-//    public void testAssocInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/assoc.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testEquivCharInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/equivChar.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testIfchainInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/ifchain.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testIterVarInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/iterVar.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testIterVarArrInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/iterVarArr.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testIterVarDecInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/iterVarDec.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testReadInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/read.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testTeste0Inst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/simple/teste0.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
     @Test
     public void testAssocLan() throws IOException {
         String filePath = "src/test/resources/semantica/certo/simple/assoc.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -116,6 +40,8 @@ public class SemanticaSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -127,6 +53,8 @@ public class SemanticaSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -137,6 +65,8 @@ public class SemanticaSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -147,6 +77,8 @@ public class SemanticaSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -157,6 +89,8 @@ public class SemanticaSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -168,6 +102,8 @@ public class SemanticaSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -183,6 +119,20 @@ public class SemanticaSimpleTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
+        Interpreter interpreter = new Interpreter();
+        assertDoesNotThrow(() -> interpreter.interpret(program));
+    }
+
+    @Test
+    public void testTeste1Lan() throws IOException {
+        String filePath = "src/test/resources/semantica/certo/simple/teste1.lan";
+        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+        Parser parser = new Parser(sourceCode);
+        Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }

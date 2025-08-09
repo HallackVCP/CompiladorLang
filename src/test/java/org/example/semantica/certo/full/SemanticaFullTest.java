@@ -3,6 +3,7 @@ package org.example.semantica.certo.full;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
+import org.example.lang.semantica.TypeCheckerVisitor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ public class SemanticaFullTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -39,27 +42,22 @@ public class SemanticaFullTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
 
-//    @Test
-//    public void testAFDInst() throws IOException {
-//        String filePath = "src/test/resources/types/full/AFD.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testLinkedInst() throws IOException {
-//        String filePath = "src/test/resources/types/full/linked.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
+    @Test
+    public void testControleNotas() throws IOException {
+        String filePath = "src/test/resources/semantica/certo/full/ControleNotas.lan";
+        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+        Parser parser = new Parser(sourceCode);
+        Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
+        Interpreter interpreter = new Interpreter();
+        assertDoesNotThrow(() -> interpreter.interpret(program));
+    }
+
 }

@@ -61,6 +61,8 @@ public class Compiler {
                 case "-src": // Nova diretiva para geração source-to-source
                     SourceGeneratorVisitor generator = new SourceGeneratorVisitor();
                     String pythonCode = generator.generate(program);
+                    String pythonFileName = filePath.replace(".lang", ".py");
+                    Files.writeString(Paths.get(pythonFileName), pythonCode, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
                     System.out.print(pythonCode); // Usar print para não adicionar nova linha no final
                     break;
 
