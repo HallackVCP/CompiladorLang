@@ -40,8 +40,8 @@ public class TypesFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -50,8 +50,8 @@ public class TypesFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -60,8 +60,8 @@ public class TypesFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -71,8 +71,8 @@ public class TypesFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
     private void simulateInput(String simulatedInput) {
         InputStream originalIn = System.in;
@@ -86,8 +86,8 @@ public class TypesFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -96,7 +96,7 @@ public class TypesFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 }

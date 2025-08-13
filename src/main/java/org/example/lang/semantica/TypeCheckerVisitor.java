@@ -286,12 +286,29 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
         if (returnTypes.size() != lvalues.size()) {
             throw new SemanticException("Número de variáveis (" + lvalues.size() + ") incompatível com o número de retornos (" + returnTypes.size() + ") da função '" + func.name() + "'.");
         }
-
         for (int i = 0; i < lvalues.size(); i++) {
-            TypeNode lvalueType = lvalues.get(i).accept(this);
-            TypeNode returnType = returnTypes.get(i);
-            if (!areTypesCompatible(lvalueType, returnType)) {
-                throw new SemanticException("Tipo do lvalue #" + i + " incompatível com o retorno da função.");
+            LValue currentLValue = lvalues.get(i);
+            TypeNode expectedType = returnTypes.get(i);
+
+            if (currentLValue instanceof VarAccessExp vae) {
+                String varName = vae.name();
+                TypeNode existingType = findVarInScopes(varName);
+
+                if (existingType != null) {
+                    // Variável já existe, apenas checa a compatibilidade de tipo.
+                    if (!areTypesCompatible(existingType, expectedType)) {
+                        throw new SemanticException("Tipo do lvalue '" + varName + "' ("+ existingType +") incompatível com o retorno da função ("+ expectedType +").");
+                    }
+                } else {
+                    // Variável NÃO existe, então a declaramos no escopo ATUAL.
+                    varContext.peek().put(varName, expectedType);
+                }
+            } else {
+                // Para lvalues complexos (a[i], p.x), eles devem existir.
+                TypeNode lvalueType = currentLValue.accept(this);
+                if (!areTypesCompatible(lvalueType, expectedType)) {
+                    throw new SemanticException("Tipo do lvalue #" + (i+1) + " incompatível com o retorno da função.");
+                }
             }
         }
         return null;

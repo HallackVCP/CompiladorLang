@@ -2,6 +2,7 @@ package org.example.semantica.errado;
 
 import org.example.lang.Exception.AnalysisException;
 import org.example.lang.Exception.InterpreterException;
+import org.example.lang.Exception.SemanticException;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
@@ -23,8 +24,6 @@ public class SemanticaErradoTest {
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
         TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
-        typeChecker.check(program);
-        Interpreter interpreter = new Interpreter();
-        assertThrows(RuntimeException.class, () -> interpreter.interpret(parser.parseProgram()));
+        assertThrows(RuntimeException.class, () -> typeChecker.check(program));
     }
 }
