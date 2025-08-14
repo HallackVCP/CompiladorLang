@@ -33,6 +33,8 @@ import org.example.lang.ast.type.ArrayTypeNode;
 import org.example.lang.ast.type.BaseTypeNode;
 import org.example.lang.ast.type.NullTypeNode;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -44,8 +46,11 @@ public class SourceGeneratorVisitor implements Visitor<String> {
     private int indentationLevel = 0;
     private final String indentationUnit = "    "; // 4 espaços para indentação
 
+    private final Map<String, FunDecl> functionsContext = new HashMap<>();
+
     // Método principal que inicia a geração
     public String generate(Program program) {
+        collectSymbols(program);
         return program.accept(this);
     }
 
@@ -59,6 +64,19 @@ public class SourceGeneratorVisitor implements Visitor<String> {
 
     private void decreaseIndent() {
         indentationLevel--;
+    }
+
+    private void collectSymbols(Program program) {
+        for (Decl decl : program.decls()) {
+            if (decl instanceof FunDecl f) {
+                functionsContext.put(f.name(), f);
+            } else if (decl instanceof DataDecl d) {
+                // Coleta funções aninhadas em 'data'
+                for (FunDecl fun : d.functions()) {
+                    functionsContext.put(fun.name(), fun);
+                }
+            }
+        }
     }
 
     // --- Métodos de Visita ---
@@ -230,14 +248,32 @@ public class SourceGeneratorVisitor implements Visitor<String> {
 
     @Override
     public String visit(FunCallExp e) {
-        String args = e.args().stream()
-                .map(arg -> arg.accept(this))
-                .collect(Collectors.joining(", "));
-        String baseCall = e.name() + "(" + args + ")";
-        if (e.returnIndex().isPresent()) {
-            return baseCall + "[" + e.returnIndex().get().accept(this) + "]";
+        // Busca a declaração da função no nosso novo contexto
+        FunDecl funcDecl = functionsContext.get(e.name());
+        if (funcDecl == null) {
+            // Fallback para caso a função não seja encontrada (ex: função nativa)
+            // Mantém o comportamento antigo
+            String args = e.args().stream().map(arg -> arg.accept(this)).collect(Collectors.joining(", "));
+            String baseCall = e.name() + "(" + args + ")";
+            if (e.returnIndex().isPresent()) {
+                return baseCall + "[" + e.returnIndex().get().accept(this) + "]";
+            }
+            return baseCall;
         }
-        return baseCall;
+        // Lógica principal: verifica o número de retornos
+        String args = e.args().stream().map(arg -> arg.accept(this)).collect(Collectors.joining(", "));
+        String baseCall = e.name() + "(" + args + ")";
+
+        // Se a função retorna mais de um valor, a indexação é necessária.
+        if (funcDecl.returnTypes().size() > 1) {
+            if (e.returnIndex().isPresent()) {
+                return baseCall + "[" + e.returnIndex().get().accept(this) + "]";
+            }
+            return baseCall; // Retorna a tupla em Python
+        } else {
+            // Se a função retorna APENAS UM valor, IGNORAMOS o '[0]' da AST.
+            return baseCall;
+        }
     }
 
     @Override

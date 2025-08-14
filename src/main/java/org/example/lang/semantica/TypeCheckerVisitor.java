@@ -21,11 +21,11 @@ import java.util.Stack;
 public class TypeCheckerVisitor implements Visitor<TypeNode> {
 
     // Contexto de Tipos de Dados (Δ)
-    private final Map<String, DataDecl> dataTypesContext = new HashMap<>();
+    protected final Map<String, DataDecl> dataTypesContext = new HashMap<>();
     // Contexto de Funções (Θ)
-    private final Map<String, FunDecl> functionsContext = new HashMap<>();
+    protected final Map<String, FunDecl> functionsContext = new HashMap<>();
     // Contexto de Variáveis (Γ)
-    private final Stack<Map<String, TypeNode>> varContext = new Stack<>();
+    protected final Stack<Map<String, TypeNode>> varContext = new Stack<>();
 
     // Armazena os tipos de retorno esperados para a função atual
     private List<TypeNode> expectedReturnTypes;
@@ -193,10 +193,10 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
                 throw new SemanticException("Índice de retorno de função deve ser do tipo Int.");
             }
 
-            // CORREÇÃO: Para uma verificação estática robusta, o índice deve ser um literal constante.
-            if (!(indexExp instanceof IntLiteralExp)) {
-                throw new SemanticException("Índice de retorno de função deve ser um literal inteiro constante para verificação estática.");
-            }
+//            // CORREÇÃO: Para uma verificação estática robusta, o índice deve ser um literal constante.
+//            if (!(indexExp instanceof IntLiteralExp)) {
+//                throw new SemanticException("Índice de retorno de função deve ser um literal inteiro constante para verificação estática.");
+//            }
 
             int indexValue = ((IntLiteralExp) indexExp).value();
             List<TypeNode> returnTypes = func.returnTypes();
@@ -232,7 +232,23 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
 
     @Override
     public TypeNode visit(ReadCmd c) {
-        TypeNode type = c.lvalue().accept(this);
+        TypeNode type;
+        LValue lvalue = c.lvalue();
+
+        if (lvalue instanceof VarAccessExp vae) {
+            String varName = vae.name();
+            type = findVarInScopes(varName);
+
+            if (type == null) {
+                // Variável não existe. Declaramos implicitamente como Int
+                // (pois é o tipo mais comum para 'read').
+                type = new BaseTypeNode("Int");
+                varContext.peek().put(varName, type);
+            }
+        } else {
+            type = lvalue.accept(this);
+        }
+
         if (!(isInt(type) || isFloat(type) || isChar(type))) {
             throw new SemanticException("Comando 'read' não suporta o tipo " + type);
         }
@@ -244,6 +260,9 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
         TypeNode collectionType = c.collection().accept(this);
         if (c.var().isPresent()) {
             String varName = c.var().get();
+//            if (findVarInScopes(varName) != null) {
+//                throw new SemanticException("Erro Semântico: A variável de iteração '" + varName + "' não pode ser redeclarada pois já existe em um escopo externo.");
+//            }
             varContext.push(new HashMap<>());
             if (collectionType instanceof ArrayTypeNode atn) {
                 varContext.peek().put(varName, atn.elementType());

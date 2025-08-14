@@ -3,11 +3,11 @@ def fibonacci(n):
         return n
     if (n == 1):
         return n
-    return (fibonacci((n - 1))[0] + fibonacci((n - 2))[0])
+    return (fibonacci((n - 1)) + fibonacci((n - 2)))
 
 
 def main():
-    v = fibonacci(15)[0]
+    v = fibonacci(15)
     print(v, end='')
     print('\n', end='')
 

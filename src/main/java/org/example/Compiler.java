@@ -74,12 +74,15 @@ public class Compiler {
                     break;
 
                 case "-gen":
-                    String outputClassName = (args.length > 2) ? args[2] : "LangClass";
+                    String outputClassName = (args.length >= 2) ? args[1] : "LangClass";
+                    String jasminDir = "jasmin";
                     JasminGeneratorVisitor jasminGen = new JasminGeneratorVisitor(outputClassName);
                     Map<String, String> generatedFiles = jasminGen.generate(program);
 
                     for (Map.Entry<String, String> entry : generatedFiles.entrySet()) {
-                        String fileName = entry.getKey() + ".j";
+                        String fileName = entry.getKey().replace(".lan", ".j");
+                        Files.createDirectories(Paths.get(jasminDir));
+                        fileName = Paths.get(jasminDir, fileName).toString();
                         Files.writeString(Paths.get(fileName), entry.getValue(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
                         System.out.println("Arquivo gerado: " + fileName);
                     }
