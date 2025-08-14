@@ -35,6 +35,7 @@ import org.example.lang.ast.type.NullTypeNode;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +48,20 @@ public class SourceGeneratorVisitor implements Visitor<String> {
     private final String indentationUnit = "    "; // 4 espaços para indentação
 
     private final Map<String, FunDecl> functionsContext = new HashMap<>();
+
+    private static final Set<String> PYTHON_KEYWORDS = Set.of(
+            "and", "or", "not", "if", "else", "elif", "for", "while", "break",
+            "continue", "return", "in", "is", "def", "class", "try", "except",
+            "finally", "with", "as", "import", "from", "pass", "None", "True", "False"
+    );
+
+    // NOVO: Método que transforma o nome se for uma palavra-chave.
+    private String mangle(String name) {
+        if (PYTHON_KEYWORDS.contains(name)) {
+            return name + "_"; // Adiciona um underscore
+        }
+        return name;
+    }
 
     // Método principal que inicia a geração
     public String generate(Program program) {
@@ -126,7 +141,7 @@ public class SourceGeneratorVisitor implements Visitor<String> {
         String params = d.params().stream()
                 .map(FunDecl.Param::name)
                 .collect(Collectors.joining(", "));
-        sb.append(indent()).append("def ").append(d.name()).append("(").append(params).append("):\n");
+        sb.append(indent()).append("def ").append(mangle(d.name())).append("(").append(params).append("):\n");
         increaseIndent();
         sb.append(d.body().accept(this));
         decreaseIndent();
@@ -193,7 +208,7 @@ public class SourceGeneratorVisitor implements Visitor<String> {
     @Override
     public String visit(IterateCmd c) {
         StringBuilder sb = new StringBuilder();
-        String varName = c.var().orElse("_");
+        String varName = mangle(c.var().orElse("_"));
         Exp collection = c.collection();
         String collectionStr = collection.accept(this);
 
@@ -219,7 +234,7 @@ public class SourceGeneratorVisitor implements Visitor<String> {
         String args = c.args().stream()
                 .map(arg -> arg.accept(this))
                 .collect(Collectors.joining(", "));
-        return indent() + c.name() + "(" + args + ")\n";
+        return indent() + mangle(c.name()) + "(" + args + ")\n";
     }
 
     @Override
@@ -254,7 +269,7 @@ public class SourceGeneratorVisitor implements Visitor<String> {
             // Fallback para caso a função não seja encontrada (ex: função nativa)
             // Mantém o comportamento antigo
             String args = e.args().stream().map(arg -> arg.accept(this)).collect(Collectors.joining(", "));
-            String baseCall = e.name() + "(" + args + ")";
+            String baseCall = mangle(e.name()) + "(" + args + ")";
             if (e.returnIndex().isPresent()) {
                 return baseCall + "[" + e.returnIndex().get().accept(this) + "]";
             }
@@ -262,7 +277,7 @@ public class SourceGeneratorVisitor implements Visitor<String> {
         }
         // Lógica principal: verifica o número de retornos
         String args = e.args().stream().map(arg -> arg.accept(this)).collect(Collectors.joining(", "));
-        String baseCall = e.name() + "(" + args + ")";
+        String baseCall =  mangle(e.name()) + "(" + args + ")";
 
         // Se a função retorna mais de um valor, a indexação é necessária.
         if (funcDecl.returnTypes().size() > 1) {
@@ -286,7 +301,7 @@ public class SourceGeneratorVisitor implements Visitor<String> {
     }
 
     @Override
-    public String visit(VarAccessExp e) { return e.name(); }
+    public String visit(VarAccessExp e) { return mangle(e.name()); }
     @Override
     public String visit(FieldAccessExp e) { return e.recordExp().accept(this) + "." + e.fieldName(); }
     @Override
