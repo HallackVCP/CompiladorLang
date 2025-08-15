@@ -208,7 +208,7 @@ public class Interpreter implements Visitor<Value> {
 
     @Override
     public Value visit(PrintCmd c) {
-        System.out.println(c.exp().accept(this).toString());
+        System.out.print(c.exp().accept(this).toString());
         return new VoidValue();
     }
 
