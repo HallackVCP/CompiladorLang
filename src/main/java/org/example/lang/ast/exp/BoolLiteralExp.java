@@ -1,5 +1,6 @@
 package org.example.lang.ast.exp;
 
+import org.example.lang.ast.TypeNode;
 import org.example.lang.ast.Visitor;
 
 /**
@@ -9,6 +10,12 @@ import org.example.lang.ast.Visitor;
  * ${tags}
  */
 
-public record BoolLiteralExp(boolean value) implements Exp {
+public class BoolLiteralExp implements Exp {
+    private final boolean value;
+    private TypeNode type;
+    public BoolLiteralExp(boolean v) { this.value = v; }
+    public boolean value() { return value; }
+    @Override public void setType(TypeNode t) { this.type = t; }
+    @Override public TypeNode getType() { return type; }
     @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

@@ -79,6 +79,33 @@ public class Parser {
         return parseFunctionDeclaration();
     }
 
+//    private DataDecl parseDataDeclaration() {
+//        boolean isAbstract = false;
+//        if (currentToken.type() == TokenType.ABSTRACT) {
+//            eat(TokenType.ABSTRACT);
+//            isAbstract = true;
+//        }
+//        eat(TokenType.DATA);
+//        String name = eat(TokenType.TYID).lexeme();
+//        eat(TokenType.LBRACE);
+//
+//        List<DataDecl.Field> fields = new ArrayList<>();
+//        while (currentToken.type() == TokenType.ID && peek().type() == TokenType.DOUBLE_COLON) { // Pode usar peek() para checar
+//            String fieldName = eat(TokenType.ID).lexeme();
+//            eat(TokenType.DOUBLE_COLON);
+//            TypeNode fieldType = parseTypeNode();
+//            eat(TokenType.SEMI);
+//            fields.add(new DataDecl.Field(fieldName, fieldType));
+//        }
+//
+//        List<FunDecl> functions = new ArrayList<>();
+//        while (currentToken.type() != TokenType.RBRACE) {
+//            functions.add(parseFunctionDeclaration());
+//        }
+//        eat(TokenType.RBRACE);
+//        return new DataDecl(isAbstract, name, fields, functions);
+//    }
+
     private DataDecl parseDataDeclaration() {
         boolean isAbstract = false;
         if (currentToken.type() == TokenType.ABSTRACT) {
@@ -90,19 +117,35 @@ public class Parser {
         eat(TokenType.LBRACE);
 
         List<DataDecl.Field> fields = new ArrayList<>();
-        while (currentToken.type() == TokenType.ID && peek().type() == TokenType.DOUBLE_COLON) { // Pode usar peek() para checar
-            String fieldName = eat(TokenType.ID).lexeme();
-            eat(TokenType.DOUBLE_COLON);
-            TypeNode fieldType = parseTypeNode();
-            eat(TokenType.SEMI);
-            fields.add(new DataDecl.Field(fieldName, fieldType));
+        List<FunDecl> functions = new ArrayList<>();
+
+        // Loop único que processa declarações até encontrar o '}'
+        while (currentToken.type() != TokenType.RBRACE) {
+
+            // Verifica se o próximo token é um ID, que pode iniciar um campo ou uma função.
+            if (currentToken.type() != TokenType.ID) {
+                throw new ParserException("Esperada uma declaração de campo ou função dentro do bloco 'data', mas encontrou " + currentToken.type());
+            }
+
+            // Usa peek() para "espiar" o próximo token e decidir o que fazer.
+            if (peek().type() == TokenType.DOUBLE_COLON) {
+                // Se o token após o ID for '::', é uma declaração de campo.
+                String fieldName = eat(TokenType.ID).lexeme();
+                eat(TokenType.DOUBLE_COLON);
+                TypeNode fieldType = parseTypeNode();
+                eat(TokenType.SEMI);
+                fields.add(new DataDecl.Field(fieldName, fieldType));
+            } else if (peek().type() == TokenType.LPAREN) {
+                // Se o token após o ID for '(', é uma declaração de função.
+                functions.add(parseFunctionDeclaration());
+            } else {
+                // Se não for nenhum dos dois, a sintaxe está incorreta.
+                throw new ParserException("Token inesperado após o identificador no bloco 'data'. Esperado '::' para campo ou '(' para função, mas encontrou " + peek().type());
+            }
         }
 
-        List<FunDecl> functions = new ArrayList<>();
-        while (currentToken.type() != TokenType.RBRACE) {
-            functions.add(parseFunctionDeclaration());
-        }
         eat(TokenType.RBRACE);
+        // Retorna o novo tipo de dado com as listas de campos e funções preenchidas.
         return new DataDecl(isAbstract, name, fields, functions);
     }
 

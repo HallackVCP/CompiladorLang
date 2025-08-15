@@ -3,6 +3,7 @@ package org.example.semantica.certo.function;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
+import org.example.lang.semantica.TypeCheckerVisitor;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -21,81 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  */
 
 public class SemanticaFunctionTest {
-//    @Test
-//    public void testBoardInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/function/board.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testFibInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/function/fib.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testNumericInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/function/numeric.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testOrEquivInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/function/or_equiv.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testReturnInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/function/return.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testSortInst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/function/sort.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
-//
-//    @Test
-//    public void testTeste1Inst() throws IOException {
-//        String filePath = "src/test/resources/semantica/certo/function/teste1.inst";
-//        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
-//        Parser parser = new Parser(sourceCode);
-//        Program program = parser.parseProgram();
-//        Interpreter interpreter = new Interpreter();
-//        assertDoesNotThrow(() -> interpreter.interpret(program));
-//    }
     @Test
     public void testBoardLan() throws IOException {
         String filePath = "src/test/resources/semantica/certo/function/board.lan";
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -106,6 +40,8 @@ public class SemanticaFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -116,6 +52,8 @@ public class SemanticaFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -126,6 +64,8 @@ public class SemanticaFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -136,6 +76,8 @@ public class SemanticaFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        //typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -147,6 +89,8 @@ public class SemanticaFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        //typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }
@@ -162,6 +106,31 @@ public class SemanticaFunctionTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
+        Interpreter interpreter = new Interpreter();
+        assertDoesNotThrow(() -> interpreter.interpret(program));
+    }
+    @Test
+    public void testTeste1() throws IOException {
+        String filePath = "src/test/resources/semantica/certo/function/#teste1.lan#";
+        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+        Parser parser = new Parser(sourceCode);
+        Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
+        Interpreter interpreter = new Interpreter();
+        assertDoesNotThrow(() -> interpreter.interpret(program));
+    }
+
+    @Test
+    public void testTeste12Lan() throws IOException {
+        String filePath = "src/test/resources/semantica/certo/function/teste12.lan";
+        String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
+        Parser parser = new Parser(sourceCode);
+        Program program = parser.parseProgram();
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        typeChecker.check(program);
         Interpreter interpreter = new Interpreter();
         assertDoesNotThrow(() -> interpreter.interpret(program));
     }

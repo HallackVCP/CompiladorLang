@@ -1,0 +1,13 @@
+.class public AFD
+.super java/lang/Object
+
+.field public st [[LTransition;
+.field public numt [I
+.field public numStates I
+.field public start I
+
+.method public <init>()V
+    aload_0
+    invokespecial java/lang/Object/<init>()V
+    return
+.end method

@@ -12,6 +12,14 @@ import java.util.Optional;
  * ${tags}
  */
 
-public record NewExp(TypeNode type, Optional<Exp> size) implements Exp {
+public class NewExp implements Exp {
+    private final TypeNode typeNode;
+    private final Optional<Exp> size;
+    private TypeNode type;
+    public NewExp(TypeNode tn, Optional<Exp> s) { this.typeNode = tn; this.size = s; }
+    public TypeNode typeNode() { return typeNode; }
+    public Optional<Exp> size() { return size; }
+    @Override public void setType(TypeNode t) { this.type = t; }
+    @Override public TypeNode getType() { return type; }
     @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

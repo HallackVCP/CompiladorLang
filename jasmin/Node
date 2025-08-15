@@ -1,0 +1,11 @@
+.class public Node
+.super java/lang/Object
+
+.field public val I
+.field public next LNode;
+
+.method public <init>()V
+    aload_0
+    invokespecial java/lang/Object/<init>()V
+    return
+.end method

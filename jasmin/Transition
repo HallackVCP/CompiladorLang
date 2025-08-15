@@ -1,0 +1,11 @@
+.class public Transition
+.super java/lang/Object
+
+.field public sym C
+.field public dest I
+
+.method public <init>()V
+    aload_0
+    invokespecial java/lang/Object/<init>()V
+    return
+.end method

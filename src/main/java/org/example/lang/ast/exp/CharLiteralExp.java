@@ -1,5 +1,6 @@
 package org.example.lang.ast.exp;
 
+import org.example.lang.ast.TypeNode;
 import org.example.lang.ast.Visitor;
 
 /**
@@ -9,9 +10,12 @@ import org.example.lang.ast.Visitor;
  * ${tags}
  */
 
-public record CharLiteralExp(char value) implements Exp {
-    @Override
-    public <T> T accept(Visitor<T> visitor) {
-        return visitor.visit(this);
-    }
+public class CharLiteralExp implements Exp {
+    private final char value;
+    private TypeNode type;
+    public CharLiteralExp(char v) { this.value = v; }
+    public char value() { return value; }
+    @Override public void setType(TypeNode t) { this.type = t; }
+    @Override public TypeNode getType() { return type; }
+    @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
 }

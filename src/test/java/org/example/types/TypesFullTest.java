@@ -3,6 +3,7 @@ package org.example.types;
 import org.example.lang.ast.Program;
 import org.example.lang.interpreter.Interpreter;
 import org.example.lang.parser.Parser;
+import org.example.lang.semantica.TypeCheckerVisitor;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -27,8 +28,8 @@ public class TypesFullTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 
     @Test
@@ -37,7 +38,7 @@ public class TypesFullTest {
         String sourceCode = new String(Files.readAllBytes(Paths.get(filePath)));
         Parser parser = new Parser(sourceCode);
         Program program = parser.parseProgram();
-        Interpreter interpreter = new Interpreter();
-        assertDoesNotThrow(() -> interpreter.interpret(program));
+        TypeCheckerVisitor typeChecker = new TypeCheckerVisitor();
+        assertDoesNotThrow(() -> typeChecker.check(program));
     }
 }

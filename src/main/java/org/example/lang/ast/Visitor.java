@@ -5,6 +5,7 @@ import org.example.lang.ast.decl.*;
 import org.example.lang.ast.exp.*;
 import org.example.lang.ast.type.ArrayTypeNode;
 import org.example.lang.ast.type.BaseTypeNode;
+import org.example.lang.ast.type.NullTypeNode;
 
 /**
  * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
@@ -49,4 +50,6 @@ public interface Visitor<T> {
     T visit(VarAccessExp e);
     T visit(FieldAccessExp e);
     T visit(ArrayAccessExp e);
+
+    T visit(NullTypeNode n);
 }
