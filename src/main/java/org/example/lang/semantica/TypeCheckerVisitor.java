@@ -12,6 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+
+/**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
+
+
 /**
  * Visitor que realiza a análise semântica (verificação de tipos).
  * Implementa a estratégia de duas passagens:

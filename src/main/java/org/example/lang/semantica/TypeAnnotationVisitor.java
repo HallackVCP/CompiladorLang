@@ -7,6 +7,14 @@ import org.example.lang.ast.decl.FunDecl;
 import org.example.lang.ast.exp.*;
 
 /**
+ * @author Vinicius Hallack Cobucci Perobelli da Silva- 202065192A
+ *         Guilherme Roldão dos Reis Pimenta - 202435001
+ *
+ * ${tags}
+ */
+
+
+/**
  * Visitor que percorre a AST após a verificação de tipos
  * e anota cada nó de expressão com seu tipo correspondente.
  * Esta informação é crucial para a fase de geração de código.
