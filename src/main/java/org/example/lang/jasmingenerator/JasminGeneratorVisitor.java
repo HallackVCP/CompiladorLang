@@ -585,22 +585,24 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
 
     @Override
     public Void visit(NewExp e) {
-        if (e.size().isPresent()) { // Caso: Criação de Array
-            e.size().get().accept(this); // Empilha o tamanho do array (int)
+        if (e.size().isPresent()) {
+            e.size().get().accept(this);
 
-
-            TypeNode elementType = ((ArrayTypeNode) e.typeNode()).elementType();
+            TypeNode arrayType = e.typeNode();
+            TypeNode elementType = ((ArrayTypeNode) arrayType).elementType();
 
             if (isRef(elementType)) {
-
-                code.append("    anewarray ").append(typeToDescriptor(elementType)).append("\n");
+                if (elementType instanceof BaseTypeNode btn) {
+                    code.append("    anewarray ").append(btn.typeName()).append("\n");
+                } else {
+                    code.append("    anewarray ").append(typeToDescriptor(elementType)).append("\n");
+                }
             } else {
-
                 String primitiveName = getBaseTypeNameForArray(((BaseTypeNode) elementType).typeName());
                 code.append("    newarray ").append(primitiveName).append("\n");
             }
 
-        } else { // Caso: Criação de Registro
+        } else {
             String typeName = ((BaseTypeNode) e.typeNode()).typeName();
             code.append("    new ").append(typeName).append("\n");
             code.append("    dup\n");
@@ -608,7 +610,6 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
         }
         return null;
     }
-
     @Override
     public Void visit(FunCallExp e) {
         for (Exp arg : e.args()) {
