@@ -62,7 +62,6 @@ public class SourceGeneratorVisitor implements Visitor<String> {
             "finally", "with", "as", "import", "from", "pass", "None", "True", "False"
     );
 
-    // NOVO: Método que transforma o nome se for uma palavra-chave.
     private String mangle(String name) {
         if (PYTHON_KEYWORDS.contains(name)) {
             return name + "_"; // Adiciona um underscore
@@ -70,7 +69,6 @@ public class SourceGeneratorVisitor implements Visitor<String> {
         return name;
     }
 
-    // Método principal que inicia a geração
     public String generate(Program program) {
         collectSymbols(program);
         return program.accept(this);
@@ -106,13 +104,10 @@ public class SourceGeneratorVisitor implements Visitor<String> {
     @Override
     public String visit(Program p) {
         StringBuilder sb = new StringBuilder();
-        // Adiciona um cabeçalho com importações ou helpers, se necessário.
-        // sb.append("# Gerado pelo Compilador Lang\n\n");
         for (Decl decl : p.decls()) {
             sb.append(decl.accept(this));
             sb.append("\n\n"); // Duas linhas em branco entre declarações de topo
         }
-        // Adiciona o ponto de entrada para executar a função main
         sb.append("if __name__ == \"__main__\":\n");
         sb.append(indentationUnit).append("main()\n");
         return sb.toString();
@@ -134,8 +129,6 @@ public class SourceGeneratorVisitor implements Visitor<String> {
         }
         decreaseIndent();
         decreaseIndent();
-
-        // Funções aninhadas em 'data' são traduzidas como métodos de classe
         for (FunDecl fun : d.functions()) {
             sb.append("\n").append(fun.accept(this));
         }
@@ -191,15 +184,11 @@ public class SourceGeneratorVisitor implements Visitor<String> {
 
     @Override
     public String visit(PrintCmd c) {
-        // Lang 'print' não adiciona nova linha, Python 'print' sim.
-        // Usamos end='' para emular o comportamento.
         return indent() + "print(" + c.exp().accept(this) + ", end='')\n";
     }
 
     @Override
     public String visit(ReadCmd c) {
-        // Simplificação: assume que a leitura é sempre de um inteiro.
-        // Uma implementação mais avançada usaria a informação de tipo.
         String varName = c.lvalue().accept(this);
         return indent() + varName + " = int(input(\"Entrada para " + varName + ": \"))\n";
     }
@@ -219,14 +208,13 @@ public class SourceGeneratorVisitor implements Visitor<String> {
         Exp collection = c.collection();
         String collectionStr = collection.accept(this);
 
-        // CORREÇÃO: Verifica o tipo da coleção para gerar o 'for' correto.
         TypeNode collectionType = collection.getType();
 
         if (collectionType instanceof ArrayTypeNode) {
-            // Se for um array, itera diretamente sobre os elementos.
+
             sb.append(indent()).append("for ").append(varName).append(" in ").append(collectionStr).append(":\n");
         } else {
-            // Se for um inteiro, usa a função range().
+
             sb.append(indent()).append("for ").append(varName).append(" in range(").append(collectionStr).append("):\n");
         }
 
@@ -270,11 +258,8 @@ public class SourceGeneratorVisitor implements Visitor<String> {
 
     @Override
     public String visit(FunCallExp e) {
-        // Busca a declaração da função no nosso novo contexto
         FunDecl funcDecl = functionsContext.get(e.name());
         if (funcDecl == null) {
-            // Fallback para caso a função não seja encontrada (ex: função nativa)
-            // Mantém o comportamento antigo
             String args = e.args().stream().map(arg -> arg.accept(this)).collect(Collectors.joining(", "));
             String baseCall = mangle(e.name()) + "(" + args + ")";
             if (e.returnIndex().isPresent()) {
@@ -282,18 +267,14 @@ public class SourceGeneratorVisitor implements Visitor<String> {
             }
             return baseCall;
         }
-        // Lógica principal: verifica o número de retornos
         String args = e.args().stream().map(arg -> arg.accept(this)).collect(Collectors.joining(", "));
         String baseCall =  mangle(e.name()) + "(" + args + ")";
-
-        // Se a função retorna mais de um valor, a indexação é necessária.
         if (funcDecl.returnTypes().size() > 1) {
             if (e.returnIndex().isPresent()) {
                 return baseCall + "[" + e.returnIndex().get().accept(this) + "]";
             }
-            return baseCall; // Retorna a tupla em Python
+            return baseCall;
         } else {
-            // Se a função retorna APENAS UM valor, IGNORAMOS o '[0]' da AST.
             return baseCall;
         }
     }

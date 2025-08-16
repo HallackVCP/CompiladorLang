@@ -116,11 +116,10 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
         sb.append("    invokespecial java/lang/Object/<init>()V\n");
         sb.append("    return\n");
         sb.append(".end method\n");
-        // Gera o código para as funções que pertencem a esta classe
         for (FunDecl fun : d.functions()) {
-            this.code = new StringBuilder(); // Reseta o buffer de código
-            fun.accept(this); // Visita a função para gerar seu bytecode
-            sb.append(this.code.toString()); // Anexa o bytecode da função
+            this.code = new StringBuilder();
+            fun.accept(this);
+            sb.append(this.code.toString());
         }
         return sb.toString();
     }
@@ -128,11 +127,11 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
         for (DataDecl dataDecl : dataDeclarations.values()) {
             for (FunDecl fun : dataDecl.functions()) {
                 if (fun.name().equals(functionName)) {
-                    return dataDecl.name(); // Retorna o nome da classe do 'data' (ex: "Aluno")
+                    return dataDecl.name();
                 }
             }
         }
-        return this.className; // Se não encontrou, é uma função global da classe principal
+        return this.className;
     }
 
     private String newLabel() { return "L" + (labelCounter++); }
@@ -144,9 +143,9 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
     private String getInverseJumpInstruction(String op, TypeNode type) {
         boolean isRef = isRef(type);
         return switch (op) {
-            case "==" -> isRef ? "if_acmpne" : "if_icmpne"; // Inverso de 'igual' é 'diferente'
-            case "!=" -> isRef ? "if_acmpeq" : "if_icmpeq"; // Inverso de 'diferente' é 'igual'
-            case "<"  -> "if_icmpge"; // Inverso de 'menor que' é 'maior ou igual a'
+            case "==" -> isRef ? "if_acmpne" : "if_icmpne";
+            case "!=" -> isRef ? "if_acmpeq" : "if_icmpeq";
+            case "<"  -> "if_icmpge";
             default -> "";
         };
     }
@@ -218,16 +217,16 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
             int slot = getVarSlot(vae.name());
             code.append("    ").append(getStoreInstruction(vae.getType())).append(" ").append(slot).append("\n");
         } else if (c.lvalue() instanceof FieldAccessExp fae) {
-            fae.recordExp().accept(this); // Empilha a referência ao objeto
-            c.exp().accept(this); // Empilha o valor a ser atribuído
+            fae.recordExp().accept(this);
+            c.exp().accept(this);
             String owner = ((BaseTypeNode)fae.recordExp().getType()).typeName();
             String fieldName = fae.fieldName();
             String descriptor = typeToDescriptor(fae.getType());
             code.append("    putfield ").append(owner).append("/").append(fieldName).append(" ").append(descriptor).append("\n");
         } else if (c.lvalue() instanceof ArrayAccessExp aae) {
-            aae.arrayExp().accept(this); // Empilha a referência ao array
-            aae.indexExp().accept(this); // Empilha o índice
-            c.exp().accept(this); // Empilha o valor a ser atribuído
+            aae.arrayExp().accept(this);
+            aae.indexExp().accept(this);
+            c.exp().accept(this);
             code.append("    ").append(getArrayStoreInstruction(aae.getType())).append("\n");
         }
         return null;
@@ -240,25 +239,24 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
 
         String falseTarget = c.elseBranch() != null ? elseLabel : endLabel;
 
-        // 1. Gera a condição que pula para 'falseTarget' se for FALSA.
+
         generateBranchingCondition(c.condition(), falseTarget, true);
 
-        // 2. Gera o bloco THEN.
+
         c.thenBranch().accept(this);
 
-        // 3. Se houver um bloco ELSE, o THEN precisa pular para o fim.
-        //    ADICIONAMOS UMA VERIFICAÇÃO PARA NÃO GERAR 'goto' APÓS UM 'return'.
+
         if (c.elseBranch() != null && !(c.thenBranch() instanceof ReturnCmd)) {
             code.append("    goto ").append(endLabel).append("\n");
         }
 
-        // 4. Gera o bloco ELSE (se existir).
+
         code.append(elseLabel).append(":\n");
         if (c.elseBranch() != null) {
             c.elseBranch().accept(this);
         }
 
-        // 5. Gera o rótulo final.
+
         code.append(endLabel).append(":\n");
 
         return null;
@@ -274,7 +272,7 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
                     : getJumpInstruction(e.op(), e.left().getType());
 
             if (isFloat(e.left().getType())) {
-                // Para float, a lógica de pulo é em relação a zero
+
                 code.append("    fcmpl\n");
                 String jumpInstruction = "";
                 if(op.equals("if_icmpne") || op.equals("ifne")){ jumpInstruction = "ifne"; }
@@ -286,11 +284,11 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
                 code.append("    ").append(op).append(" ").append(targetLabel).append("\n");
             }
         } else {
-            condition.accept(this); // Empilha 0 ou 1
+            condition.accept(this);
             if (jumpOnFalse) {
-                code.append("    ifeq ").append(targetLabel).append("\n"); // Pula para o alvo se o valor for 0 (false)
+                code.append("    ifeq ").append(targetLabel).append("\n");
             } else {
-                code.append("    ifne ").append(targetLabel).append("\n"); // Pula para o alvo se o valor for != 0 (true)
+                code.append("    ifne ").append(targetLabel).append("\n");
             }
         }
     }
@@ -333,7 +331,7 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
         String endLabel = newLabel();
         String bodyLabel = newLabel();
 
-        // Obtém o tipo da coleção da AST já anotada
+
         TypeNode collectionType = c.collection().getType();
 
         if (collectionType instanceof ArrayTypeNode) {
@@ -341,21 +339,21 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
             int indexSlot = getVarSlot("~array_idx" + labelCounter);
             int arraySlot = getVarSlot("~array_ref" + labelCounter);
 
-            // Salva a referência do array
+
             c.collection().accept(this);
             code.append("    astore ").append(arraySlot).append("\n");
-            // Inicializa o índice em 0
+
             code.append("    iconst_0\n");
             code.append("    istore ").append(indexSlot).append("\n");
 
             code.append(startLabel).append(":\n");
-            // Condição de parada: if (index >= array.length) goto endLabel
+
             code.append("    iload ").append(indexSlot).append("\n");
             code.append("    aload ").append(arraySlot).append("\n");
             code.append("    arraylength\n");
             code.append("    if_icmpge ").append(endLabel).append("\n");
 
-            // Se houver uma variável de laço (ex: 'elem : meuArray'), atribui o elemento a ela
+
             if (c.var().isPresent()) {
                 int varSlot = getVarSlot(c.var().get());
                 code.append("    aload ").append(arraySlot).append("\n");
@@ -364,36 +362,36 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
                 code.append("    ").append(getStoreInstruction(((ArrayTypeNode) collectionType).elementType())).append(" ").append(varSlot).append("\n");
             }
 
-            // Gera o corpo do laço
+
             c.body().accept(this);
 
-            // Incrementa o índice
+
             code.append("    iinc ").append(indexSlot).append(" 1\n");
             code.append("    goto ").append(startLabel).append("\n");
             code.append(endLabel).append(":\n");
 
         } else {
-            // --- CASO 2: ITERAÇÃO SOBRE INTEIRO ---
+
             int limitSlot = getVarSlot("~int_limit" + labelCounter);
             int indexSlot = getVarSlot(c.var().orElse("~dummy_idx" + labelCounter));
 
-            // Salva o limite (valor da coleção)
+
             c.collection().accept(this);
             code.append("    istore ").append(limitSlot).append("\n");
-            // Inicializa o índice em 0
+
             code.append("    iconst_0\n");
             code.append("    istore ").append(indexSlot).append("\n");
 
             code.append(startLabel).append(":\n");
-            // Condição de parada: if (index >= limit) goto endLabel
+
             code.append("    iload ").append(indexSlot).append("\n");
             code.append("    iload ").append(limitSlot).append("\n");
             code.append("    if_icmpge ").append(endLabel).append("\n");
 
-            // Gera o corpo do laço
+
             c.body().accept(this);
 
-            // Incrementa o índice
+
             code.append("    iinc ").append(indexSlot).append(" 1\n");
             code.append("    goto ").append(startLabel).append("\n");
             code.append(endLabel).append(":\n");
@@ -404,7 +402,6 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
 
     @Override
     public Void visit(ProcCallCmd c) {
-        // Empilha todos os argumentos na pilha da JVM.
         for (Exp arg : c.args()) {
             arg.accept(this);
         }
@@ -414,18 +411,16 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
             throw new RuntimeException("Erro de geração: Procedimento '" + c.name() + "' não encontrado no contexto.");
         }
 
-        // --- LÓGICA DE CHAMADA CORRIGIDA ---
-        // 1. Encontra a classe correta para a função.
         String ownerClass = findFunctionOwnerClass(c.name());
 
-        // 2. Constrói a assinatura completa usando a classe dona correta.
+
         String paramsDescriptor = func.params().stream().map(p -> typeToDescriptor(p.type())).collect(Collectors.joining());
         String returnDescriptor = getReturnDescriptor(func.returnTypes());
         String methodSignature = ownerClass + "/" + c.name() + "(" + paramsDescriptor + ")" + returnDescriptor;
 
-        // 3. Gera a instrução de chamada.
+
         code.append("    invokestatic ").append(methodSignature).append("\n");
-        // --- FIM DA CORREÇÃO ---
+
 
         if (!returnDescriptor.equals("V")) {
             code.append("    pop\n");
@@ -438,25 +433,60 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
         for (Exp arg : c.call().args()) {
             arg.accept(this);
         }
-
         FunDecl func = functionsContext.get(c.call().name());
         if (func == null) {
             throw new RuntimeException("Erro de geração: Função '" + c.call().name() + "' não encontrada no contexto.");
         }
-
-        // --- LÓGICA DE CHAMADA CORRIGIDA ---
         String ownerClass = findFunctionOwnerClass(c.call().name());
         String paramsDescriptor = func.params().stream().map(p -> typeToDescriptor(p.type())).collect(Collectors.joining());
         String returnDescriptor = getReturnDescriptor(func.returnTypes());
         String methodSignature = ownerClass + "/" + c.call().name() + "(" + paramsDescriptor + ")" + returnDescriptor;
         code.append("    invokestatic ").append(methodSignature).append("\n");
-        // --- FIM DA CORREÇÃO ---
-
-        // O resto da lógica para lidar com a atribuição de múltiplos retornos permanece o mesmo.
         if (func.returnTypes().size() > 1) {
-            // ... (lógica existente) ...
+            int arraySlot = getVarSlot("~return_array" + labelCounter++);
+            code.append("    astore ").append(arraySlot).append("\n");
+
+            for (int i = 0; i < c.lvalues().size(); i++) {
+                LValue lvalue = c.lvalues().get(i);
+                if (lvalue instanceof FieldAccessExp fae) {
+                    fae.recordExp().accept(this);
+                } else if (lvalue instanceof ArrayAccessExp aae) {
+                    aae.arrayExp().accept(this);
+                    aae.indexExp().accept(this);
+                }
+                code.append("    aload ").append(arraySlot).append("\n");
+                pushInt(i);
+                code.append("    aaload\n");
+                unboxIfPrimitive(lvalue.getType());
+                if (lvalue instanceof VarAccessExp vae) {
+                    int slot = getVarSlot(vae.name());
+                    code.append("    ").append(getStoreInstruction(vae.getType())).append(" ").append(slot).append("\n");
+                } else if (lvalue instanceof FieldAccessExp fae) {
+                    String owner = ((BaseTypeNode)fae.recordExp().getType()).typeName();
+                    code.append("    putfield ").append(owner).append("/").append(fae.fieldName()).append(" ").append(typeToDescriptor(fae.getType())).append("\n");
+                } else if (lvalue instanceof ArrayAccessExp aae) {
+                    code.append("    ").append(getArrayStoreInstruction(aae.getType())).append("\n");
+                }
+            }
         } else if (func.returnTypes().size() == 1) {
-            // ... (lógica existente) ...
+            LValue lvalue = c.lvalues().get(0);
+
+            if (lvalue instanceof VarAccessExp vae) {
+                int slot = getVarSlot(vae.name());
+                code.append("    ").append(getStoreInstruction(vae.getType())).append(" ").append(slot).append("\n");
+            } else if (lvalue instanceof FieldAccessExp fae) {
+                fae.recordExp().accept(this);
+                code.append("    swap\n");
+                String owner = ((BaseTypeNode)fae.recordExp().getType()).typeName();
+                code.append("    putfield ").append(owner).append("/").append(fae.fieldName()).append(" ").append(typeToDescriptor(fae.getType())).append("\n");
+            } else if (lvalue instanceof ArrayAccessExp aae) {
+                int tempSlot = getVarSlot("~temp_assign" + labelCounter++);
+                code.append("    ").append(getStoreInstruction(lvalue.getType())).append(" ").append(tempSlot).append("\n");
+                aae.arrayExp().accept(this);
+                aae.indexExp().accept(this);
+                code.append("    ").append(getLoadInstruction(lvalue.getType())).append(" ").append(tempSlot).append("\n");
+                code.append("    ").append(getArrayStoreInstruction(aae.getType())).append("\n");
+            }
         }
         return null;
     }
@@ -466,7 +496,7 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
 
     @Override
     public Void visit(BinOpExp e) {
-        // --- LÓGICA CORRIGIDA E COMPLETA PARA BINOP ---
+
 
         if (e.op().equals("&&")) {
             // --- CASO 1: OPERADOR LÓGICO AND (&&) ---
@@ -474,24 +504,24 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
             String falseLabel = newLabel();
             String endLabel = newLabel();
 
-            // 1. Avalia o lado esquerdo.
+
             e.left().accept(this);
-            // 2. Se for falso (0), o resultado já é falso, então pula para o fim.
+
             code.append("    ifeq ").append(falseLabel).append("\n");
 
-            // 3. Se o lado esquerdo era verdadeiro, o resultado da expressão é o do lado direito.
+
             e.right().accept(this);
             code.append("    goto ").append(endLabel).append("\n");
 
-            // 4. Caminho do 'falso': empilha 0.
+
             code.append(falseLabel).append(":\n");
             code.append("    iconst_0\n");
 
-            // 5. Rótulo final. O resultado (0 ou 1) está no topo da pilha.
+
             code.append(endLabel).append(":\n");
 
         } else if (isRelational(e.op())) {
-            // --- CASO 2: OPERADORES RELACIONAIS (<, ==, !=) ---
+
             String trueLabel = newLabel();
             String endLabel = newLabel();
             e.left().accept(this);
@@ -517,7 +547,7 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
             code.append(endLabel).append(":\n");
 
         } else {
-            // --- CASO 3: OPERADORES ARITMÉTICOS (+, -, *, /, %) ---
+
             TypeNode resultType = e.getType();
             TypeNode leftType = e.left().getType();
             TypeNode rightType = e.right().getType();
@@ -558,17 +588,14 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
         if (e.size().isPresent()) { // Caso: Criação de Array
             e.size().get().accept(this); // Empilha o tamanho do array (int)
 
-            // O tipo de uma expressão 'new T[s]' é ArrayTypeNode.
-            // Precisamos olhar para o TIPO DO ELEMENTO para decidir a instrução.
+
             TypeNode elementType = ((ArrayTypeNode) e.typeNode()).elementType();
 
             if (isRef(elementType)) {
-                // Se o elemento é uma referência (outro array ou um registro como 'Transition'),
-                // usamos 'anewarray'.
+
                 code.append("    anewarray ").append(typeToDescriptor(elementType)).append("\n");
             } else {
-                // Se o elemento é um tipo primitivo ('Int', 'Float', 'Char', 'Bool'),
-                // usamos 'newarray'.
+
                 String primitiveName = getBaseTypeNameForArray(((BaseTypeNode) elementType).typeName());
                 code.append("    newarray ").append(primitiveName).append("\n");
             }
@@ -593,17 +620,17 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
             throw new RuntimeException("Erro de geração: Função '" + e.name() + "' não encontrada no contexto.");
         }
 
-        // --- LÓGICA DE CHAMADA CORRIGIDA ---
+
         String ownerClass = findFunctionOwnerClass(e.name());
 
         String paramsDescriptor = func.params().stream().map(p -> typeToDescriptor(p.type())).collect(Collectors.joining());
         String returnDescriptor = getReturnDescriptor(func.returnTypes());
         String methodSignature = ownerClass + "/" + e.name() + "(" + paramsDescriptor + ")" + returnDescriptor;
         code.append("    invokestatic ").append(methodSignature).append("\n");
-        // --- FIM DA CORREÇÃO ---
+
 
         if (e.returnIndex().isPresent()) {
-            // O resto da lógica para indexar o valor de retorno permanece o mesmo.
+
             if (func.returnTypes().size() > 1) {
                 e.returnIndex().get().accept(this);
                 code.append("    aaload\n");
@@ -645,16 +672,10 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
     @Override public Void visit(NullLiteralExp e) { code.append("    aconst_null\n"); return null; }
     @Override
     public Void visit(ReadCmd c) {
-        // Cria um novo objeto java.util.Scanner se for a primeira leitura
-        // ou reutiliza o existente. (Uma implementação mais simples pode criar um novo a cada vez)
-        // Para simplificar, vamos criar um novo a cada chamada:
         code.append("    new java/util/Scanner\n");
         code.append("    dup\n");
         code.append("    getstatic java/lang/System/in Ljava/io/InputStream;\n");
         code.append("    invokespecial java/util/Scanner/<init>(Ljava/io/InputStream;)V\n");
-
-        // Chama o método nextInt() do Scanner, que retorna um inteiro e o deixa na pilha.
-        // Uma implementação mais robusta usaria o tipo anotado para chamar nextInt(), nextFloat(), etc.
         code.append("    invokevirtual java/util/Scanner/nextInt()I\n");
 
         // Pega o valor inteiro do topo da pilha e o armazena na variável correta.
@@ -663,14 +684,12 @@ public class JasminGeneratorVisitor implements Visitor<Void> {
             int slot = getVarSlot(vae.name());
             code.append("    istore ").append(slot).append("\n");
         } else {
-            // Implementar lógica para outros lvalues (campos, arrays) se necessário.
-            // Por exemplo, para um array:
             if (lvalue instanceof ArrayAccessExp aae) {
                 int tempValSlot = getVarSlot("~temp_read" + labelCounter);
-                code.append("    istore ").append(tempValSlot).append("\n"); // Armazena o int lido
-                aae.arrayExp().accept(this);    // Empilha arrayref
-                aae.indexExp().accept(this);    // Empilha index
-                code.append("    iload ").append(tempValSlot).append("\n");    // Empilha o int lido de volta
+                code.append("    istore ").append(tempValSlot).append("\n");
+                aae.arrayExp().accept(this);
+                aae.indexExp().accept(this);
+                code.append("    iload ").append(tempValSlot).append("\n");
                 code.append("    iastore\n");
             }
         }

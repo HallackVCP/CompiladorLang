@@ -122,27 +122,20 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
 
     @Override
     public TypeNode visit(AssignCmd c) {
-        // Primeiro, determina o tipo da expressão que está sendo atribuída.
         TypeNode expType = c.exp().accept(this);
 
-        // Agora, lida com o lvalue.
         if (c.lvalue() instanceof VarAccessExp vae) {
             String varName = vae.name();
-            // Verifica se a variável já está definida em algum escopo visível.
             TypeNode existingType = findVarInScopes(varName);
 
             if (existingType != null) {
-                // Variável existe, verifica a compatibilidade de tipos.
                 if (!areTypesCompatible(existingType, expType)) {
                     throw new SemanticException("Tipos incompatíveis na atribuição. A variável '" + varName + "' é do tipo " + existingType + ", mas encontrou " + expType);
                 }
             } else {
-                // Variável não existe, então a declaramos no escopo ATUAL.
                 varContext.peek().put(varName, expType);
             }
         } else {
-            // Para lvalues complexos (a[i], p.x), eles devem existir.
-            // A chamada accept() aqui irá validar a existência da base (a, p).
             TypeNode lvalueType = c.lvalue().accept(this);
             if (!areTypesCompatible(lvalueType, expType)) {
                 throw new SemanticException("Tipos incompatíveis na atribuição. Esperado " + lvalueType + ", mas encontrou " + expType);
@@ -201,16 +194,12 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
             if (!isInt(indexType)) {
                 throw new SemanticException("Índice de retorno de função deve ser do tipo Int.");
             }
-
-//            // CORREÇÃO: Para uma verificação estática robusta, o índice deve ser um literal constante.
 //            if (!(indexExp instanceof IntLiteralExp)) {
 //                throw new SemanticException("Índice de retorno de função deve ser um literal inteiro constante para verificação estática.");
 //            }
 
             int indexValue = ((IntLiteralExp) indexExp).value();
             List<TypeNode> returnTypes = func.returnTypes();
-
-            // Verifica se o índice está dentro dos limites dos valores de retorno
             if (indexValue < 0 || indexValue >= returnTypes.size()) {
                 throw new SemanticException("Índice de retorno " + indexValue + " fora dos limites para a função '" + e.name() + "', que retorna " + returnTypes.size() + " valores.");
             }
@@ -218,7 +207,7 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
             return returnTypes.get(indexValue);
         }
 
-        return null; // Contexto de atribuição múltipla
+        return null;
     }
 
     @Override
@@ -249,8 +238,6 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
             type = findVarInScopes(varName);
 
             if (type == null) {
-                // Variável não existe. Declaramos implicitamente como Int
-                // (pois é o tipo mais comum para 'read').
                 type = new BaseTypeNode("Int");
                 varContext.peek().put(varName, type);
             }
@@ -323,16 +310,13 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
                 TypeNode existingType = findVarInScopes(varName);
 
                 if (existingType != null) {
-                    // Variável já existe, apenas checa a compatibilidade de tipo.
                     if (!areTypesCompatible(existingType, expectedType)) {
                         throw new SemanticException("Tipo do lvalue '" + varName + "' ("+ existingType +") incompatível com o retorno da função ("+ expectedType +").");
                     }
                 } else {
-                    // Variável NÃO existe, então a declaramos no escopo ATUAL.
                     varContext.peek().put(varName, expectedType);
                 }
             } else {
-                // Para lvalues complexos (a[i], p.x), eles devem existir.
                 TypeNode lvalueType = currentLValue.accept(this);
                 if (!areTypesCompatible(lvalueType, expectedType)) {
                     throw new SemanticException("Tipo do lvalue #" + (i+1) + " incompatível com o retorno da função.");
@@ -410,9 +394,7 @@ public class TypeCheckerVisitor implements Visitor<TypeNode> {
             DataDecl decl = dataTypesContext.get(btn.typeName());
             if (decl.isAbstract()) {
                 boolean isAccessAllowed = false;
-                // O acesso só é permitido se estivermos dentro de uma função
                 if (currentFunctionDecl != null) {
-                    // E se essa função for uma das funções definidas dentro do tipo de dado
                     for (FunDecl funcInScope : decl.functions()) {
                         if (funcInScope.name().equals(currentFunctionDecl.name())) {
                             isAccessAllowed = true;
