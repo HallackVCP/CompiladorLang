@@ -63,7 +63,10 @@ public class Compiler {
                     String pythonCode = generator.generate(program);
                     String pythonDir = "python";
                     Files.createDirectories(Paths.get(pythonDir));
-                    String pythonFileName = Paths.get(pythonDir, filePath.replace(".lan", ".py").replaceAll(".*/", "")).toString();
+                    String pythonFileName = Paths.get(
+                            pythonDir,
+                            filePath.replaceAll("\\.[^.]*$", ".py").replaceAll(".*/", "")
+                    ).toString();
                     Files.writeString(Paths.get(pythonFileName), pythonCode, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
                     System.out.print(pythonCode);
                     break;
@@ -80,7 +83,7 @@ public class Compiler {
                     Map<String, String> generatedFiles = jasminGen.generate(program);
 
                     for (Map.Entry<String, String> entry : generatedFiles.entrySet()) {
-                        String fileName = entry.getKey().replace(".lan", ".j");
+                        String fileName = entry.getKey().replaceAll("\\.[^.]*$", ".j").replaceAll(".*/", "");
                         Files.createDirectories(Paths.get(jasminDir));
                         fileName = Paths.get(jasminDir, fileName).toString();
                         Files.writeString(Paths.get(fileName), entry.getValue(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
